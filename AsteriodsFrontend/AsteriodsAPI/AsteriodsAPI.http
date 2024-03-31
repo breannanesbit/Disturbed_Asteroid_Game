@@ -1,0 +1,6 @@
+@AsteriodsAPI_HostAddress = http://localhost:5170
+
+GET {{AsteriodsAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
