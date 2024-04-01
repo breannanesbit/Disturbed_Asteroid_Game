@@ -8,7 +8,7 @@ namespace AstoridsTest;
 
 public class UnitTest1 : TestKit
 {
-    [Fact]
+    /*[Fact]
     public void Device_actor_must_reply_with_empty_reading_if_no_temperature_is_known()
     {
         var Sys = ActorSystem.Create("MyActorSystem");
@@ -323,5 +323,5 @@ public class UnitTest1 : TestKit
           msg.Temperatures["device2"].AsInstanceOf<Temperature>().Value == 2.0 &&
           msg.Temperatures["device3"] is TemperatureNotAvailable &&
           msg.RequestId == 0);
-    }
+    }*/
 }

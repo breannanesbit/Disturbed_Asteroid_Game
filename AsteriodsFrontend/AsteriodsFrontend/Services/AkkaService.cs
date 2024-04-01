@@ -25,7 +25,7 @@ public class AkkaService : IHostedService, IActorBridge
         var bootstrap = BootstrapSetup.Create();
         var diSetup = DependencyResolverSetup.Create(_serviceProvider);
         var actorSystemSetup = bootstrap.And(diSetup);
-        _actorSysetem = ActorSystem.Create("akka_universe", actorSystemSetup);
+        _actorSysetem = ActorSystem.Create("akka-universe", actorSystemSetup);
         _actorRef = _actorSysetem.ActorOf(Worker.Props(), "heavy-weight-word");
         _actorSysetem.WhenTerminated.ContinueWith(_ =>
         {
