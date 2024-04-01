@@ -7,12 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka" Version="1.5.18" />
-    <PackageReference Include="Akka.DependencyInjection" Version="1.5.18" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Actors\Actors.csproj" />
+    <ProjectReference Include="..\AsteriodsFrontend\AsteriodsFrontend.csproj" />
   </ItemGroup>
 
 </Project>
