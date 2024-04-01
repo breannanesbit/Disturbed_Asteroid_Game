@@ -1,0 +1,30 @@
+@page "/user-input"
+@using Actors
+@using Akka.Actor
+@using Akka.AspNetCore
+@rendermode InteractiveServer
+@inject IActorBridge akkaService
+
+<h3>User Input</h3>
+
+<input @bind="key" />
+<button class="btn btn-primary" @onclick="() => SendKey()">Send</button>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <p>@response</p>
+}
+
+@code {
+    private string key;
+    private string response;
+
+    private async Task SendKey()
+    {
+        // Obtain a reference to the router actor
+        var result = await akkaService.Ask<string>(key);
+        Console.WriteLine(result);
+        response = result;
+    }
+}
+
