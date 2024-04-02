@@ -1,5 +1,6 @@
 @page "/user-input"
 @using Actors
+@using Actors.UserActors
 @using Akka.Actor
 @using Akka.AspNetCore
 @rendermode InteractiveServer
@@ -10,19 +11,21 @@
 <input @bind="key" />
 <button class="btn btn-primary" @onclick="() => SendKey()">Send</button>
 
-@if (!string.IsNullOrEmpty(response))
+@if (!string.IsNullOrEmpty(response.Username))
 {
-    <p>@response</p>
+    <p>@response.Username</p>
+    <p>@response.Path</p>
+
 }
 
 @code {
     private string key;
-    private string response;
+    private User response = new();
 
     private async Task SendKey()
     {
         // Obtain a reference to the router actor
-        var result = await akkaService.Ask<string>(key);
+        var result = await akkaService.Ask<User>(key);
         Console.WriteLine(result);
         response = result;
     }
