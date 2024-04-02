@@ -7,10 +7,10 @@ namespace Actors.UserActors
         public User CurrentUser { get; set; } = new User();
         public UserActor()
         {
-            Receive<string>(username =>
+            Receive<User>(user =>
             {
                 //Make http call to raft to save the user info and then set CurrentUser
-                CurrentUser.Username = username;
+                CurrentUser.Username = user.Username;
                 CurrentUser.Path = Self.Path.ToString();
                 Sender.Tell(CurrentUser);
             });

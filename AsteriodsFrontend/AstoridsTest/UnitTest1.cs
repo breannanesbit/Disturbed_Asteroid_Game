@@ -36,9 +36,12 @@ namespace AstoridsTest
             using var system = ActorSystem.Create("MyTestSystem");
 
             var UserSup = system.ActorOf(Props.Create<UserSupervisor>(), "UserSupervisor");
-            var username = "TomRiddle";
 
-            UserSup.Tell(username);
+            var username = "TomRiddle";
+            var u = new User() { Username = username };
+
+
+            UserSup.Tell(u);
             var response = ExpectMsg<User>(TimeSpan.FromSeconds(5));
 
             Assert.Equal(response.Username, username);

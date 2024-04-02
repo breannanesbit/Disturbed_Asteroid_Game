@@ -9,23 +9,23 @@ public class UserSupervisor : ReceiveActor
     {
         UserActors = new List<UsersActorInfo>();
 
-        Receive<string>(username =>
+        Receive<User>(user =>
         {
             // Check if a UserActor already exists for the given username
-            var existingUser = UserActors.Find(user => user.Username == username);
+            var existingUser = UserActors.Find(u => u.Username == user.Username);
 
             if (existingUser == null)
             {
                 // If not, create a new UserActor and add it to the list
-                var newUserActor = Context.ActorOf(UserActor.Props(), username);
-                UserActors.Add(new UsersActorInfo { Username = username, ActorRef = newUserActor });
-                newUserActor.Forward(username);
+                var newUserActor = Context.ActorOf(UserActor.Props(), user.Username);
+                UserActors.Add(new UsersActorInfo { Username = user.Username, ActorRef = newUserActor });
+                newUserActor.Forward(user);
 
-                Console.WriteLine($"New UserActor created for {username}");
+                Console.WriteLine($"New UserActor created for {user.Username}");
             }
             else
             {
-                Console.WriteLine($"UserActor already exists for {username}");
+                Console.WriteLine($"UserActor already exists for {user.Username}");
             }
         });
     }

@@ -1,3 +1,4 @@
+using Actors.UserActors;
 using Akka.Actor;
 using Akka.DependencyInjection;
 
@@ -28,7 +29,8 @@ namespace Akka.AspNetCore
             _actorSystem = ActorSystem.Create("akka-universe", actorSystemSetup);
 
             // Create router actor instead of a single worker actor
-            _actorRef = _actorSystem.ActorOf(Props.Create<UserSupervisor>(), "router");
+            _actorRef = _actorSystem.ActorOf(Props.Create<HeadSupervisor>(), "router");
+            
 
             _actorSystem.WhenTerminated.ContinueWith(_ =>
             {
