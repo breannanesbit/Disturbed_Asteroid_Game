@@ -18,9 +18,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsteriodsAPI", "AsteriodsAP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsteriodClient", "AsteriodClient\AsteriodClient.csproj", "{F2873193-4D3F-49F3-8C8E-7D7FA9B39BB0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaftAPI", "RaftAPI\RaftAPI.csproj", "{1F55CB43-8D3F-47DE-82B8-28C9CB5C6626}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftAPI", "RaftAPI\RaftAPI.csproj", "{1F55CB43-8D3F-47DE-82B8-28C9CB5C6626}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{86B93F4E-E7AC-471C-97D8-A0F27FA6E9FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsteriodSignalR", "AsteriodSignalR\AsteriodSignalR.csproj", "{EDB7A871-F66C-45AE-82BD-5D3899947523}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,6 +58,10 @@ Global
 		{86B93F4E-E7AC-471C-97D8-A0F27FA6E9FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86B93F4E-E7AC-471C-97D8-A0F27FA6E9FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86B93F4E-E7AC-471C-97D8-A0F27FA6E9FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDB7A871-F66C-45AE-82BD-5D3899947523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDB7A871-F66C-45AE-82BD-5D3899947523}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDB7A871-F66C-45AE-82BD-5D3899947523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDB7A871-F66C-45AE-82BD-5D3899947523}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
