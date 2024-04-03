@@ -2,8 +2,10 @@
 
 namespace Actors.UserActors
 {
+    public enum UserState { Playing, NotPlaying }
     public class UserActor : ReceiveActor
     {
+        public UserState CurrentState { get; set; }
         public User CurrentUser { get; set; } = new User();
         public UserActor()
         {
@@ -13,6 +15,12 @@ namespace Actors.UserActors
                 CurrentUser.Username = user.Username;
                 CurrentUser.Path = Self.Path.ToString();
                 Sender.Tell(CurrentUser);
+            });
+
+            Receive<ChangeUserState>(user =>
+            {
+                CurrentState = user.ChangedState;
+                Console.WriteLine($"user state is now : {CurrentState}");
             });
         }
 

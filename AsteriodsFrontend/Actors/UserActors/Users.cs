@@ -8,10 +8,29 @@ namespace Actors.UserActors
         public IActorRef ActorRef { get; set; }
     }
 
+    public class Lobby
+    {
+        public Guid Id { get; set; }
+        public string HeadPlayer { get; set; }
+        public IActorRef ActorRef { get; set; }
+    }
+
     public class User
     {
         public string Username { get; set; }
         public string Path { get; set; }
     }
+
+    public class NewLobbyObject
+    {
+        public string username { get; set; }
+    }
+
+    public class ChangeUserState
+    {
+        public UserState ChangedState { get; set; }
+    }
+
+
 
 }

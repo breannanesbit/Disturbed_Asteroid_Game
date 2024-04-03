@@ -11,6 +11,13 @@ builder.Services.AddSwaggerGen();
 
 var nodes = Environment.GetEnvironmentVariable("NODES")?.Split(',')?.ToList() ?? [];
 
+builder.Services.AddSingleton(serviceProvider =>
+{
+    var logger = serviceProvider.GetRequiredService<ILogger<Election>>();
+    return new Election(nodes, logger);
+
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -19,16 +26,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
-builder.Services.AddSingleton(serviceProvider =>
-{
-    var logger = serviceProvider.GetRequiredService<ILogger<Gateway>>();
-    return new Gateway(nodes, logger);
-
-});
-
-
 var app = builder.Build();
-
 
 app.UseSwagger();
 app.UseSwaggerUI();

@@ -1,0 +1,65 @@
+version: '3.4'
+
+services:
+  asteriodclient:
+    image: ${DOCKER_REGISTRY-}asteriodclient
+    build:
+      context: .
+      dockerfile: AsteriodClient/Dockerfile
+    ports:
+      - "4532:8080"
+
+
+  actors:
+    image: ${DOCKER_REGISTRY-}actors
+    build:
+      context: .
+      dockerfile: Actors/Dockerfile
+
+  raftapi:
+    build:
+      context: .
+      dockerfile: RaftAPI/Dockerfile
+    ports:
+      - "2002:8080"
+    environment:
+      - NODES="http://raftapi2:8080,http://raftapi3:8080"
+    networks:
+      - raft_network
+
+  raftapi2:
+    build:
+      context: .
+      dockerfile: RaftAPI/Dockerfile
+    ports:
+      - "2003:8080"
+    environment:
+      - NODES="http://raftapi:8080,http://raftapi3:8080"
+    networks:
+      - raft_network
+
+  raftapi3:
+    build:
+      context: .
+      dockerfile: RaftAPI/Dockerfile
+    ports:
+      - "2004:8080"
+    environment:
+      - NODES="http://raftapi2:8080,http://raftapi:8080"
+    networks:
+      - raft_network
+
+  asteriodsapi:
+    image: ${DOCKER_REGISTRY-}asteriodsapi
+    build:
+      context: .
+      dockerfile: AsteriodsAPI/Dockerfile
+    ports:
+      - "2010:8080"
+    environment:
+      - NODES="http://raftapi:8080,http://raftapi2:8080,http://raftapi3:8080"
+    networks:
+      - raft_network
+
+networks:
+  raft_network:

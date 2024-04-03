@@ -15,7 +15,7 @@
 {
     <p>@response.Username</p>
     <p>@response.Path</p>
-    <button class="btn btn-primary" @onclick="() => JoinLobby()">JoinLobby</button>
+    <button class="btn btn-primary" @onclick="() => CreateANewLobby()">Create a new Lobby</button>
 
 }
 
@@ -33,9 +33,15 @@
         response = result;
     }
 
-    private async Task JoinLobby()
+    private async Task CreateANewLobby()
     {
-        
+        var nl = new NewLobbyObject() { username = key };
+
+        var result = await akkaService.Ask<ChangeUserState>(nl);
+        if(result != null)
+        {
+            Console.WriteLine("made it all the way");
+        }
     }
 }
 

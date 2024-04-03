@@ -1,13 +1,8 @@
 ﻿using Akka.Actor;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Actors.UserActors
 {
-    public class HeadSupervisor :ReceiveActor
+    public class HeadSupervisor : ReceiveActor
     {
         private readonly IActorRef newLobbySupervisor;
         private readonly IActorRef newUserSupervisor;
@@ -24,6 +19,10 @@ namespace Actors.UserActors
             Receive<User>((user) =>
             {
                 newUserSupervisor.Forward(user);
+            });
+            Receive<NewLobbyObject>((newLobby) =>
+            {
+                newUserSupervisor.Forward(newLobby);
             });
 
         }
