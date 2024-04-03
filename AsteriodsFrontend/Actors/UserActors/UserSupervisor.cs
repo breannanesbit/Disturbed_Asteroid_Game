@@ -4,11 +4,14 @@ using Akka.Actor;
 public class UserSupervisor : ReceiveActor
 {
     private List<UsersActorInfo> UserActors { get; set; }
+    public IActorRef SignalRActor { get; }
+
     private readonly IActorRef newLobbySupervisor;
 
-    public UserSupervisor()
+    public UserSupervisor(IActorRef SignalRActor, IActorRef newLobbySupervisor)
     {
-        newLobbySupervisor = Context.ActorOf(LobbySupervisor.Props());
+        this.SignalRActor = SignalRActor;
+        this.newLobbySupervisor = newLobbySupervisor;
         UserActors = new List<UsersActorInfo>();
 
         Receive<User>(user =>
@@ -42,12 +45,13 @@ public class UserSupervisor : ReceiveActor
                 var c = new ChangeUserState() { ChangedState = UserState.Playing };
 
                 existingUser.ActorRef.Forward(c);
+
             }
 
         });
     }
-    public static Props Props() =>
-         Akka.Actor.Props.Create(() => new UserSupervisor());
+    //public static Props Props() =>
+    //     Akka.Actor.Props.Create(() => new UserSupervisor());
 
 }
 

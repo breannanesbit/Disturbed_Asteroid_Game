@@ -6,11 +6,13 @@ namespace Actors.UserActors
     {
         private readonly IActorRef newLobbySupervisor;
         private readonly IActorRef newUserSupervisor;
+        private readonly IActorRef _signalRActor;
 
-        public HeadSupervisor()
+        public HeadSupervisor(IActorRef newUserSupervisor, IActorRef newLobbySupervisor)
         {
-            newLobbySupervisor = Context.ActorOf(LobbySupervisor.Props());
-            newUserSupervisor = Context.ActorOf(UserSupervisor.Props());
+            this.newUserSupervisor = newUserSupervisor;
+            this.newLobbySupervisor = newLobbySupervisor;
+
 
             Receive<Lobby>((lobby) =>
             {
@@ -24,7 +26,7 @@ namespace Actors.UserActors
             {
                 newUserSupervisor.Forward(newLobby);
             });
-
         }
     }
+
 }

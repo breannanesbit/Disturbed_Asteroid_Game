@@ -1,3 +1,5 @@
+using SignalRAPI.Hub;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -17,6 +19,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
+
+app.MapHub<ComunicationHub>("/ComunicationHub");
 
 app.MapControllers();
 

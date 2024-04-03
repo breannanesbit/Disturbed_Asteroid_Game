@@ -3,6 +3,7 @@
 @using Actors.UserActors
 @using Akka.Actor
 @using Akka.AspNetCore
+@using Microsoft.AspNetCore.SignalR.Client
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
 
@@ -22,6 +23,8 @@
 @code {
     private string key;
     private User response = new();
+    private HubConnection? hubConnection;
+
 
     private async Task SendKey()
     {
@@ -43,5 +46,27 @@
             Console.WriteLine("made it all the way");
         }
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl("http://signalrapi:8080/ComunicationHub")
+            .Build();
+
+        hubConnection.On<string>("ReceiveMessage", (message) =>
+        {
+            // Handle received message
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    // Dispose the hub connection when component is disposed
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+            await hubConnection.DisposeAsync();
+    }
+
 }
 

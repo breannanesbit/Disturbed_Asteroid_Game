@@ -61,5 +61,14 @@ services:
     networks:
       - raft_network
 
+  signalrapi:
+    build: 
+      context: .
+      dockerfile: AsteriodSignalR/Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - raft_network
+
 networks:
   raft_network:

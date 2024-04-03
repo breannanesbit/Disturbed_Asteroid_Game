@@ -5,8 +5,11 @@ namespace Actors.UserActors
     public class LobbySupervisor : ReceiveActor
     {
         private List<Lobby> Lobbies { get; set; }
-        public LobbySupervisor()
+        public IActorRef SignalRActor { get; }
+
+        public LobbySupervisor(IActorRef SignalRActor)
         {
+            this.SignalRActor = SignalRActor;
             Lobbies = new List<Lobby>();
 
 
@@ -25,7 +28,7 @@ namespace Actors.UserActors
                 }
             });
         }
-        public static Props Props() =>
-            Akka.Actor.Props.Create(() => new LobbySupervisor());
+        //public static Props Props() =>
+        //    Akka.Actor.Props.Create(() => new LobbySupervisor());
     }
 }

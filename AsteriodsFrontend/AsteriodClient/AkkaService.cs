@@ -1,6 +1,9 @@
+using Actors;
 using Actors.UserActors;
 using Akka.Actor;
 using Akka.DependencyInjection;
+using Microsoft.AspNet.SignalR;
+using SignalRAPI.Hub;
 
 namespace Akka.AspNetCore
 {
@@ -29,8 +32,22 @@ namespace Akka.AspNetCore
             _actorSystem = ActorSystem.Create("akka-universe", actorSystemSetup);
 
             // Create router actor instead of a single worker actor
-            _actorRef = _actorSystem.ActorOf(Props.Create<HeadSupervisor>(), "router");
-            
+            var signalRProps = Props.Create(() => new SignalRActor(
+            GlobalHost.DependencyResolver.Resolve<IHubContext<ComunicationHub>>()));
+
+            var signalRActorRef = _actorSystem.ActorOf(signalRProps, "signalRActor");
+
+            var lobbySupervisorProps = Props.Create(() => new LobbySupervisor(signalRActorRef));
+            var newLobbySupervisor = _actorSystem.ActorOf(lobbySupervisorProps);
+
+            // Create the UserSupervisor actor with a reference to the SignalR actor
+            var userSupervisorProps = Props.Create(() => new UserSupervisor(signalRActorRef, newLobbySupervisor));
+            var newUserSupervisor = _actorSystem.ActorOf(userSupervisorProps);
+
+            // Create the HeadSupervisor actor with a reference to the SignalR actor
+            var headSupervisorProps = Props.Create(() => new HeadSupervisor(newUserSupervisor, newLobbySupervisor));
+            _actorRef = _actorSystem.ActorOf(headSupervisorProps, "router");
+
 
             _actorSystem.WhenTerminated.ContinueWith(_ =>
             {

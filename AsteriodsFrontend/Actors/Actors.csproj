@@ -10,7 +10,13 @@
 
   <ItemGroup>
     <PackageReference Include="Akka" Version="1.5.18" />
+    <PackageReference Include="Microsoft.AspNet.SignalR.Core" Version="2.4.3" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.0-preview.2.24128.4" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AsteriodSignalR\AsteriodSignalR.csproj" />
   </ItemGroup>
 
 </Project>
