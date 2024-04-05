@@ -22,10 +22,15 @@ namespace Actors.UserActors
                     var newLobbyActor = Context.ActorOf(LobbyActor.Props());
                     var lobby = new Lobby { HeadPlayer = NewLobby.username, ActorRef = newLobbyActor, Id = Guid.NewGuid() };
                     Lobbies.Add(lobby);
-                    newLobbyActor.Forward(lobby);
+                    newLobbyActor.Tell(lobby);
 
                     Console.WriteLine("made it to the supervisor");
                 }
+            });
+
+            Receive<CreatedLobby>(CreadtedLobby =>
+            {
+                SignalRActor.Tell(CreadtedLobby);
             });
         }
         //public static Props Props() =>

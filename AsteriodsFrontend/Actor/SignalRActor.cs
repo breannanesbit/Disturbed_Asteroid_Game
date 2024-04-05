@@ -1,4 +1,5 @@
-﻿using Akka.Actor;
+﻿using Actors.UserActors;
+using Akka.Actor;
 using Microsoft.AspNet.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using SignalRAPI.Hub;
@@ -15,7 +16,8 @@ namespace Actors
             .WithUrl("http://localhost:32772/ComunicationHub")
                     .WithAutomaticReconnect()
                     .Build();
-            Receive<string>(message =>
+
+            Receive<CreatedLobby>(message =>
             {
                 hubConnection1.SendAsync("SendMessage", Sender.ToString(), message);
             });

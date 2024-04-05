@@ -31,6 +31,10 @@ namespace Actors.UserActors
         public UserState ChangedState { get; set; }
     }
 
+    public class CreatedLobby
+    {
+        public Guid LobbyId { get; set; }
+    }
 
 
 }

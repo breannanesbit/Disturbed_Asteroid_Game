@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsteriodWeb", "AsteriodWeb\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actor", "Actor\Actor.csproj", "{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{49CE745E-4C50-4650-B25D-1348D192BDBE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49CE745E-4C50-4650-B25D-1348D192BDBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49CE745E-4C50-4650-B25D-1348D192BDBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49CE745E-4C50-4650-B25D-1348D192BDBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49CE745E-4C50-4650-B25D-1348D192BDBE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

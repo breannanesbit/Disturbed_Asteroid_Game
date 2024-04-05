@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RaftElection;
+using Shared;
 
 [ApiController]
 [Route("[controller]")]
