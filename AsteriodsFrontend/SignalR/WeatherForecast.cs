@@ -1,4 +1,4 @@
-namespace AsteriodSignalR
+namespace SignalR
 {
     public class WeatherForecast
     {

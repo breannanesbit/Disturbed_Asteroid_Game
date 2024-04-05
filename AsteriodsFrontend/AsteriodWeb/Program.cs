@@ -1,7 +1,7 @@
 using Akka.Actor;
 using Akka.AspNetCore;
 using Akka.Configuration;
-using AsteriodClient.Components;
+using AsteriodWeb.Components;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;

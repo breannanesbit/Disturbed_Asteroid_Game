@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace AsteriodSignalR.Controllers
+namespace Actors.Controllers
 {
     [ApiController]
     [Route("[controller]")]

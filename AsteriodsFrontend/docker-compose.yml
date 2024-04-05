@@ -5,7 +5,7 @@ services:
     image: ${DOCKER_REGISTRY-}asteriodclient
     build:
       context: .
-      dockerfile: AsteriodClient/Dockerfile
+      dockerfile: AsteriodWeb/Dockerfile
     ports:
       - "4532:8080"
 
@@ -14,7 +14,7 @@ services:
     image: ${DOCKER_REGISTRY-}actors
     build:
       context: .
-      dockerfile: Actors/Dockerfile
+      dockerfile: Actor/Dockerfile
 
   raftapi:
     build:
@@ -64,11 +64,67 @@ services:
   signalrapi:
     build: 
       context: .
-      dockerfile: AsteriodSignalR/Dockerfile
+      dockerfile: SignalR/Dockerfile
     ports:
-      - "8080:8080"
+      - "8000:8000"
     networks:
       - raft_network
 
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      # - ./prometheus:/etc/prometheus
+      - ./ops/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      # - ./loki:/etc/loki
+      - ./ops/loki.yml:/etc/grafana/provisioning/datasources/loki.yml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./provisioning:/etc/grafana/provisioning
+    depends_on:
+      - loki
+      - prometheus
+    networks:
+      - monitoring
+
+  otel-collector:
+    image: otel/opentelemetry-collector
+    container_name: otel-collector
+    ports:
+      - "4317:4317"
+    volumes:
+      - ./ops/collector-config.yaml:/etc/otel-collector/config.yaml
+    networks:
+      - monitoring
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - monitoring
+
 networks:
   raft_network:
+  monitoring:
+  

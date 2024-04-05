@@ -4,20 +4,17 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>16c2b258-a9f9-437a-91d2-ff5d99372662</UserSecretsId>
+    <UserSecretsId>5d315f46-9f2e-4c21-8bef-2b31cb0649ee</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
-	  
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Akka.Bootstrap.Docker" Version="0.5.3" />
     <PackageReference Include="Akka.Cluster" Version="1.5.18" />
     <PackageReference Include="Akka.DependencyInjection" Version="1.5.18" />
-    <PackageReference Include="Akka.HealthCheck.Cluster" Version="1.5.18" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
+    <PackageReference Include="Microsoft.AspNet.SignalR.Core" Version="2.4.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.0-preview.2.24128.4" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
     <PackageReference Include="OpenTelemetry" Version="1.8.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.8.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.8.0" />
@@ -30,6 +27,9 @@
     <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
   </ItemGroup>
 
-  <!--<ProjectExtensions><VisualStudio><UserProperties properties_4launchsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>-->
+  <ItemGroup>
+    <ProjectReference Include="..\Actor\Actor.csproj" />
+    <ProjectReference Include="..\SignalR\SignalR.csproj" />
+  </ItemGroup>
 
 </Project>

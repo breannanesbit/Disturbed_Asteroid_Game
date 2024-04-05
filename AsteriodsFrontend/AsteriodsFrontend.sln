@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actors", "Actors\Actors.csproj", "{54E1D702-D170-419D-856C-82E1667BDCA0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AstoridsTest", "AstoridsTest\AstoridsTest.csproj", "{6D8A91C5-04AF-47AB-BD6D-C5086F007BAB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8AFFD9AD-D823-43EE-A337-C6A0EF121725}"
@@ -12,17 +10,24 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsteriodsFrontend", "AsteriodsFrontend\AsteriodsFrontend.csproj", "{86F0E365-47B9-4C37-A135-EC00C432CDBE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsteriodsAPI", "AsteriodsAPI\AsteriodsAPI.csproj", "{6B320356-3278-417C-9A00-B28B52C2F543}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsteriodClient", "AsteriodClient\AsteriodClient.csproj", "{F2873193-4D3F-49F3-8C8E-7D7FA9B39BB0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaftAPI", "RaftAPI\RaftAPI.csproj", "{1F55CB43-8D3F-47DE-82B8-28C9CB5C6626}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{86B93F4E-E7AC-471C-97D8-A0F27FA6E9FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsteriodSignalR", "AsteriodSignalR\AsteriodSignalR.csproj", "{EDB7A871-F66C-45AE-82BD-5D3899947523}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ops", "ops", "{BFD97732-17C9-41D1-A98D-765EC184BE0F}"
+	ProjectSection(SolutionItems) = preProject
+		collector-config.yaml = collector-config.yaml
+		loki.yml = loki.yml
+		Prometheus.yml = Prometheus.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalR", "SignalR\SignalR.csproj", "{274AD9FF-5255-45A3-9D4C-2E60A06A0305}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsteriodWeb", "AsteriodWeb\AsteriodWeb.csproj", "{D2CEE63F-3D93-4556-9611-8FE032740D21}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actor", "Actor\Actor.csproj", "{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,26 +35,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{54E1D702-D170-419D-856C-82E1667BDCA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{54E1D702-D170-419D-856C-82E1667BDCA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{54E1D702-D170-419D-856C-82E1667BDCA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{54E1D702-D170-419D-856C-82E1667BDCA0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6D8A91C5-04AF-47AB-BD6D-C5086F007BAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6D8A91C5-04AF-47AB-BD6D-C5086F007BAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D8A91C5-04AF-47AB-BD6D-C5086F007BAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D8A91C5-04AF-47AB-BD6D-C5086F007BAB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{86F0E365-47B9-4C37-A135-EC00C432CDBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{86F0E365-47B9-4C37-A135-EC00C432CDBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{86F0E365-47B9-4C37-A135-EC00C432CDBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{86F0E365-47B9-4C37-A135-EC00C432CDBE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6B320356-3278-417C-9A00-B28B52C2F543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6B320356-3278-417C-9A00-B28B52C2F543}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B320356-3278-417C-9A00-B28B52C2F543}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B320356-3278-417C-9A00-B28B52C2F543}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F2873193-4D3F-49F3-8C8E-7D7FA9B39BB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F2873193-4D3F-49F3-8C8E-7D7FA9B39BB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F2873193-4D3F-49F3-8C8E-7D7FA9B39BB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F2873193-4D3F-49F3-8C8E-7D7FA9B39BB0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1F55CB43-8D3F-47DE-82B8-28C9CB5C6626}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1F55CB43-8D3F-47DE-82B8-28C9CB5C6626}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F55CB43-8D3F-47DE-82B8-28C9CB5C6626}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -58,13 +51,24 @@ Global
 		{86B93F4E-E7AC-471C-97D8-A0F27FA6E9FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86B93F4E-E7AC-471C-97D8-A0F27FA6E9FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86B93F4E-E7AC-471C-97D8-A0F27FA6E9FB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EDB7A871-F66C-45AE-82BD-5D3899947523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EDB7A871-F66C-45AE-82BD-5D3899947523}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EDB7A871-F66C-45AE-82BD-5D3899947523}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EDB7A871-F66C-45AE-82BD-5D3899947523}.Release|Any CPU.Build.0 = Release|Any CPU
+		{274AD9FF-5255-45A3-9D4C-2E60A06A0305}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{274AD9FF-5255-45A3-9D4C-2E60A06A0305}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{274AD9FF-5255-45A3-9D4C-2E60A06A0305}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{274AD9FF-5255-45A3-9D4C-2E60A06A0305}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2CEE63F-3D93-4556-9611-8FE032740D21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2CEE63F-3D93-4556-9611-8FE032740D21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2CEE63F-3D93-4556-9611-8FE032740D21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2CEE63F-3D93-4556-9611-8FE032740D21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BFD97732-17C9-41D1-A98D-765EC184BE0F} = {8AFFD9AD-D823-43EE-A337-C6A0EF121725}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C8299179-851A-4D10-8F7D-7473D17E3CD3}

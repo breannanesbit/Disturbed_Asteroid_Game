@@ -20,8 +20,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 
-app.MapHub<ComunicationHub>("/ComunicationHub");
-
 app.MapControllers();
+app.MapHub<ComunicationHub>("/ComunicationHub");
 
 app.Run();

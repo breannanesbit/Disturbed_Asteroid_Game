@@ -1,6 +1,0 @@
-@AsteriodSignalR_HostAddress = http://localhost:5134
-
-GET {{AsteriodSignalR_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
