@@ -1,0 +1,73 @@
+﻿@page "/lobby"
+<PageTitle>lobby</PageTitle>
+<div class="row">
+    <p class="col col-5 ">State: Waiting</p>
+    <button type="button" class="btn btn-success col col-3" onclick="HandleStart">Start</button>
+</div>
+<div class="@boxClass" 
+     style="height: 750px; width: 750px; position:relative;" @onkeydown="HandleKeyPress" @onclick="HandleBoxClick" tabindex="0">
+
+    <img class="ship" style="position:absolute; left:@state.x px; top:@state.y px" src="images/ships/space-ship.svg" alt="ship" />
+
+</div>
+@code {
+
+    private class ShipState
+    {
+        public int x { get; set; } = 0;
+        public int y { get; set; } = 0;
+        public int BoundaryLeft { get; } = 0;
+        public int BoundaryTop { get; } = 0;
+        public int BoundaryRight { get; } = 700;
+        public int BoundaryBottom { get; } = 700;
+    }
+    private ShipState state = new ShipState();
+    private bool isBoxClicked = false;
+    private string boxClass => isBoxClicked ? "lobby-body clicked" : "lobby-body border";
+    //private const int BoundaryLeft = 200;
+    //private const int BoundaryTop = 50;
+
+    //move forward, left, right,
+
+    public async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        Console.WriteLine("moving");
+        var key = e.Key;
+        const int step = 10;
+        switch (key)
+        {
+            case "w":
+                //if(state.y - step >= state.BoundaryTop)
+                state.y -= step;
+                break;
+            case "s":
+                //if (state.y - step >= state.BoundaryBottom)
+                state.y += step;
+                break;
+            case "a":
+                //if(state.x - step >= state.BoundaryLeft)
+                state.x -= step;
+                break;
+            case "d":
+                //if (state.x - step >= state.BoundaryRight)
+                state.x += step;
+                break;
+        }
+        StateHasChanged();
+        //await Task.CompletedTask;
+    }
+    private void HandleBoxClick()
+    {
+        isBoxClicked = true;
+    }
+    /*private string responseMessage;
+    private string key;
+
+    private async Task SendToActor()
+        {
+        akkaService.Tell(key);
+        responseMessage = "";
+        var response = await akkaService.Ask<string>(key);
+        responseMessage = response;
+    }*/
+}

@@ -1,0 +1,11 @@
+﻿.lobby-body {
+    background: #212121;
+}
+
+body {
+    background: #212121;
+    color: white;
+}
+.lobby-body {
+    border: solid 1px #0dae33;
+}

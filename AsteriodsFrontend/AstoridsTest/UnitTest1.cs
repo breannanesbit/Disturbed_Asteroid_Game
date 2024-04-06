@@ -46,5 +46,6 @@ namespace AstoridsTest
             Assert.Equal(response.Username, username);
             Assert.StartsWith("akka://MyTestSystem/user/UserSupervisor/TomRiddle", response.Path);
         }
+
     }
 }
