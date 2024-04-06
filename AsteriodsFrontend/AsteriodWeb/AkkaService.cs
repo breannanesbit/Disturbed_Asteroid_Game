@@ -2,7 +2,7 @@ using Actors;
 using Actors.UserActors;
 using Akka.Actor;
 using Akka.DependencyInjection;
-using Microsoft.AspNet.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using SignalRAPI.Hub;
 
 namespace Akka.AspNetCore
@@ -32,8 +32,11 @@ namespace Akka.AspNetCore
             _actorSystem = ActorSystem.Create("akka-universe", actorSystemSetup);
 
             // Create router actor instead of a single worker actor
+            //var signalRProps = Props.Create(() => new SignalRActor(
+            //GlobalHost.DependencyResolver.Resolve<IHubContext<ComunicationHub>>()));
+
             var signalRProps = Props.Create(() => new SignalRActor(
-            GlobalHost.DependencyResolver.Resolve<IHubContext<ComunicationHub>>()));
+                _serviceProvider.GetRequiredService<IHubContext<ComunicationHub>>()));
 
             var signalRActorRef = _actorSystem.ActorOf(signalRProps, "signalRActor");
 

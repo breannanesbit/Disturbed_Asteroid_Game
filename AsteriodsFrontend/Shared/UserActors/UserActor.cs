@@ -2,7 +2,6 @@
 
 namespace Actors.UserActors
 {
-    public enum UserState { Playing, NotPlaying }
     public class UserActor : ReceiveActor
     {
         public UserState CurrentState { get; set; }

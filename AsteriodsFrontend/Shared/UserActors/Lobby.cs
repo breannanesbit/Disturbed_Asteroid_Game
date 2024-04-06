@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Newtonsoft.Json;
 using Shared;
+using System.Net.Http.Json;
 
 namespace Actors.UserActors
 {

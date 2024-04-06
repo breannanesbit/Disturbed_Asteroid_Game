@@ -3,6 +3,7 @@
 @using Akka.Actor
 @using Akka.AspNetCore
 @using Microsoft.AspNetCore.SignalR.Client
+@using Shared;
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
 
@@ -23,7 +24,7 @@
     private string key;
     private User response = new();
     private HubConnection? hubConnection;
-    private string GotSingalRMessage;
+    private CreatedLobby GotSingalRMessage;
 
 
 

@@ -2,6 +2,8 @@
 
 namespace Actors.UserActors
 {
+    public enum UserState { Playing, NotPlaying }
+
     public class UsersActorInfo
     {
         public string Username { get; set; }
