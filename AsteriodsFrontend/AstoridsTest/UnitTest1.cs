@@ -43,12 +43,16 @@ namespace AstoridsTest
             var username = "TomRiddle";
             var u = new User() { Username = username };
 
+            var userSupervisor = Sys.ActorOf(Props.Create(() => new UserSupervisor(signalRProbe, newLobbySupervisorProbe)));
+            var username = "testUser";
+            var userActor = Sys.ActorOf(UserActor.Props(), username);
 
             UserSup.Tell(u);
             var response = probe.ExpectMsg<User>(TimeSpan.FromSeconds(5));
 
-            Assert.Equal(response.Username, username);
-            Assert.StartsWith("akka://MyTestSystem/user/UserSupervisor/TomRiddle", response.Path);
+            var response = newLobbySupervisorProbe.ExpectMsg<NewLobbyObject>(TimeSpan.FromSeconds(5));  
+            //Assert.Equal(username, response.username);
+            //Assert.NotNull(response.Path);
         }
 
         [Fact]

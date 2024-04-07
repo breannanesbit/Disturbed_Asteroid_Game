@@ -6,8 +6,8 @@
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
 
-
-<h3>Lobby: @Lobby.Id</h3>
+@* 
+<h3>Lobby: @Lobby.Id</h3> *@
 <button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button>
 
 
@@ -24,14 +24,14 @@
             //.WithUrl("http://localhost:32772/ComunicationHub")
             .Build();
 
-        hubConnection.On<GameState>("GameStarted", (message) =>
+       /* hubConnection.On<GameState>("GameStarted", (message) =>
         {
             if(message == GameState.Playing)
             {
                 //navigate to the lobby game page
             }
 
-        });
+        });*/
 
         await hubConnection.StartAsync();
     }
@@ -45,12 +45,13 @@
 
     private async Task ChangeGameState()
     {
-        var cgs = new ChangeGameState
+       /* var cgs = new ChangeGameState
             {
                 user = Lobby.HeadPlayer,
                 lobbyId = Lobby.Id,
                 lobbyState = GameState.Playing
             };
         var result = await akkaService.Ask<ChangeGameState>(cgs);
-    }
+    */
+        }
 }
