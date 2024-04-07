@@ -25,6 +25,7 @@ public class UserSupervisor : ReceiveActor
                 var newUserActor = Context.ActorOf(UserActor.Props(), user.Username);
                 UserActors.Add(new UsersActorInfo { Username = user.Username, ActorRef = newUserActor });
                 newUserActor.Forward(user);
+                //newUserActor.Tell(user, Sender);
 
                 Console.WriteLine($"New UserActor created for {user.Username}");
             }

@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Shared;
 
 namespace Actors.UserActors
 {
@@ -15,12 +16,15 @@ namespace Actors.UserActors
         public Guid Id { get; set; }
         public string HeadPlayer { get; set; }
         public IActorRef ActorRef { get; set; }
+
+        public List<User> Players { get; set; }
     }
 
     public class User
     {
         public string Username { get; set; }
         public string Path { get; set; }
+        public Ship Ship { get; set; }
     }
 
     public class NewLobbyObject

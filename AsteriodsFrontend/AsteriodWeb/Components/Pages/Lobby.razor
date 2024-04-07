@@ -1,17 +1,25 @@
 ﻿@page "/lobby"
 <PageTitle>lobby</PageTitle>
-<div class="row">
-    <p class="col col-5 ">State: Waiting</p>
-    <button type="button" class="btn btn-success col col-3" onclick="HandleStart">Start</button>
+@if (lobby != null)
+{
+    <div class="row">
+    <p class="col col-5 ">State: @lobby.lobbyState</p>
+    <button type="button" class="btn btn-danger col col-3" onclick="HandleEnd">End Game</button>
 </div>
 <div class="@boxClass" 
      style="height: 750px; width: 750px; position:relative;" @onkeydown="HandleKeyPress" @onclick="HandleBoxClick" tabindex="0">
 
     <img class="ship" style="position:absolute; left:@state.x px; top:@state.y px" src="images/ships/space-ship.svg" alt="ship" />
 
-</div>
+    </div>
+}else
+{
+    <p>Loading ...</p>    
+}
 @code {
-
+    [Parameter]
+    public Lobby lobby { get; set; }
+    
     private class ShipState
     {
         public int x { get; set; } = 0;
@@ -59,6 +67,10 @@
     private void HandleBoxClick()
     {
         isBoxClicked = true;
+    }
+    private void HandleEnd()
+    {
+        //game is ended 
     }
     /*private string responseMessage;
     private string key;

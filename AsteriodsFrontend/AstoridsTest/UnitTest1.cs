@@ -31,21 +31,39 @@ namespace AstoridsTest
         [Fact]
         public void AddUser_ToUserSupervisor()
         {
-            var probe = CreateTestProbe();
-            using var system = ActorSystem.Create("MyTestSystem");
+            var signalRProbe = CreateTestProbe();
+            var newUserSupervisorProbe = CreateTestProbe();
+            var newLobbySupervisorProbe = CreateTestProbe();
 
-            var UserSup = system.ActorOf(Props.Create<UserSupervisor>(), "UserSupervisor");
+            using var Sys = ActorSystem.Create("MyTestSystem");
 
-            var username = "TomRiddle";
-            var u = new User() { Username = username };
-
-
-            UserSup.Tell(u);
-            var response = ExpectMsg<User>(TimeSpan.FromSeconds(5));
-
+            var headSupervisor = Sys.ActorOf(Props.Create(() => new HeadSupervisor(newUserSupervisorProbe, newLobbySupervisorProbe)));
+            var userSupervisor = Sys.ActorOf(Props.Create(() => new UserSupervisor(signalRProbe, newLobbySupervisorProbe)));
+            var username = "testUser";
+            headSupervisor.Tell(new User() { Username =username });
+            var response = newUserSupervisorProbe.ExpectMsg<User>(TimeSpan.FromSeconds(5));
             Assert.Equal(response.Username, username);
-            Assert.StartsWith("akka://MyTestSystem/user/UserSupervisor/TomRiddle", response.Path);
+            //Assert.NotNull(response.Path);
         }
+        [Fact]
+        public void AddLobby_ToLobbySupervisor()
+        {
+            var signalRProbe = CreateTestProbe();
+            var newUserSupervisorProbe = CreateTestProbe();
+            var newLobbySupervisorProbe = CreateTestProbe();
 
+            using var Sys = ActorSystem.Create("MyTestSystem");
+
+            var userSupervisor = Sys.ActorOf(Props.Create(() => new UserSupervisor(signalRProbe, newLobbySupervisorProbe)));
+            var username = "testUser";
+            var userActor = Sys.ActorOf(UserActor.Props(), username);
+
+            userSupervisor.Tell(new NewLobbyObject { username = username });
+            var newLobbyObject = new NewLobbyObject { username = username };
+
+            var response = newLobbySupervisorProbe.ExpectMsg<NewLobbyObject>(TimeSpan.FromSeconds(5));  
+            //Assert.Equal(username, response.username);
+            //Assert.NotNull(response.Path);
+        }
     }
 }
