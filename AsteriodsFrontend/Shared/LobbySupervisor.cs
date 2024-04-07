@@ -28,7 +28,7 @@ namespace Actors.UserActors
                 }
             });
 
-            Receive<Lobby>(CreadtedLobby =>
+            Receive<GameLobby>(CreadtedLobby =>
             {
                 SignalRActor.Tell(CreadtedLobby);
             });
@@ -47,6 +47,15 @@ namespace Actors.UserActors
                 SignalRActor.Tell(state);
             });
 
+
+            Receive<AddUserToLobby>(state =>
+            {
+                var existingUser = Lobbies.Find(g => g.Id == state.lobbyId);
+                if (existingUser != null)
+                {
+                    existingUser.ActorRef.Tell(state);
+                }
+            });
         }
         //public static Props Props() =>
         //    Akka.Actor.Props.Create(() => new LobbySupervisor());

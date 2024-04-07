@@ -10,33 +10,36 @@ namespace Actors.UserActors
     public class LobbyActor : ReceiveActor
     {
         private readonly HttpClient _httpClient;
-        public GameState CurrentState { get; set; }
-        public List<User> Players { get; set; }
-        public User HeadPlayer { get; set; }
+        public GameLobby CurrentLobby { get; set; } = new GameLobby();
         public LobbyActor()
         {
             _httpClient = new HttpClient();
-            Players = new List<User>();
 
             Receive<Lobby>((lobby) =>
             {
-                CurrentState = GameState.Joining;
-                HeadPlayer = new User() { Username = lobby.HeadPlayer };
-                Players.Add(HeadPlayer);
+                CurrentLobby.CurrentState = GameState.Joining;
+                CurrentLobby.HeadPlayer = new User() { Username = lobby.HeadPlayer };
+                CurrentLobby.Players.Add(CurrentLobby.HeadPlayer);
 
                 TalkToGateway(lobby);
                 Console.WriteLine($"Created a new state");
 
-                Sender.Tell(lobby);
+                Sender.Tell(CurrentLobby);
             });
 
             Receive<ChangeGameState>(state =>
             {
-                if (HeadPlayer.Username == state.user)
+                if (CurrentLobby.HeadPlayer.Username == state.user)
                 {
-                    CurrentState = state.lobbyState;
-                    Sender.Tell(CurrentState);
+                    CurrentLobby.CurrentState = state.lobbyState;
+                    Sender.Tell(CurrentLobby.CurrentState);
                 }
+            });
+
+            Receive<AddUserToLobby>(state =>
+            {
+                CurrentLobby.Players.Add(new User() { Username = state.username });
+                Sender.Tell(CurrentLobby.Players.Count);
             });
         }
 
