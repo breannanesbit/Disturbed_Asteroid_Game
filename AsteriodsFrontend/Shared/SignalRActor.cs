@@ -15,7 +15,13 @@ namespace Actors
 
             Receive<ChangeUserState>(message =>
             {
-                _hubContext.Clients.All.SendAsync("ReceiveMessage", message);
+                _hubContext.Clients.All.SendAsync("SendMessage", message);
+            });
+
+            Receive<GameState>(message =>
+            {
+                //will need to change this so only the players recieve the message for this lobby
+                _hubContext.Clients.All.SendAsync("StartGame", message);
             });
         }
     }

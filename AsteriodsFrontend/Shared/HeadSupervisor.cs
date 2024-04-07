@@ -26,6 +26,10 @@ namespace Actors.UserActors
             {
                 newUserSupervisor.Forward(newLobby);
             });
+            Receive<ChangeGameState>((state) =>
+            {
+                newLobbySupervisor.Forward(state);
+            });
         }
     }
 

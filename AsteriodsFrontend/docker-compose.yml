@@ -1,6 +1,15 @@
 version: '3.4'
 
 services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./ops/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - raft_network
+  
   asteriodclient:
     image: ${DOCKER_REGISTRY-}asteriodclient
     build:
@@ -8,6 +17,8 @@ services:
       dockerfile: AsteriodWeb/Dockerfile
     ports:
       - "4532:8080"
+    networks:
+      - raft_network
 
 
   actors:
@@ -66,7 +77,7 @@ services:
       context: .
       dockerfile: SignalR/Dockerfile
     ports:
-      - "8000:8000"
+      - "8000:8080"
     networks:
       - raft_network
 

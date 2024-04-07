@@ -1,0 +1,56 @@
+﻿@page "/LobbyStartPage"
+@using Actors.UserActors
+@using Akka.AspNetCore
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+@inject IActorBridge akkaService
+
+
+<h3>Lobby: @Lobby.Id</h3>
+<button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button>
+
+
+@code {
+    [Parameter]
+    public Lobby Lobby { get; set; }
+    private HubConnection? hubConnection;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl("http://signalrapi:8000/ComunicationHub")
+            //.WithUrl("http://localhost:32772/ComunicationHub")
+            .Build();
+
+        hubConnection.On<GameState>("GameStarted", (message) =>
+        {
+            if(message == GameState.Playing)
+            {
+                //navigate to the lobby game page
+            }
+
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    // Dispose the hub connection when component is disposed
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+            await hubConnection.DisposeAsync();
+    }
+
+    private async Task ChangeGameState()
+    {
+        var cgs = new ChangeGameState
+            {
+                user = Lobby.HeadPlayer,
+                lobbyId = Lobby.Id,
+                lobbyState = GameState.Playing
+            };
+        var result = await akkaService.Ask<ChangeGameState>(cgs);
+    }
+}

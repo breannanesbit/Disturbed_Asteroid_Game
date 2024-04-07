@@ -20,16 +20,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ops", "ops", "{BFD97732-17C
 	ProjectSection(SolutionItems) = preProject
 		collector-config.yaml = collector-config.yaml
 		loki.yml = loki.yml
+		nginx.conf = nginx.conf
 		Prometheus.yml = Prometheus.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalR", "SignalR\SignalR.csproj", "{274AD9FF-5255-45A3-9D4C-2E60A06A0305}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SignalR", "SignalR\SignalR.csproj", "{274AD9FF-5255-45A3-9D4C-2E60A06A0305}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsteriodWeb", "AsteriodWeb\AsteriodWeb.csproj", "{D2CEE63F-3D93-4556-9611-8FE032740D21}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Actor", "Actor\Actor.csproj", "{0CBAF5C5-359C-4B44-BBAB-C11FB528C471}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{49CE745E-4C50-4650-B25D-1348D192BDBE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csproj", "{49CE745E-4C50-4650-B25D-1348D192BDBE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

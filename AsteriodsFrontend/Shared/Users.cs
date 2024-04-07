@@ -33,6 +33,14 @@ namespace Actors.UserActors
         public UserState ChangedState { get; set; }
     }
 
+    public class ChangeGameState
+    {
+        public string user { get; set; }
+        public GameState lobbyState { get; set; }
+        public Guid lobbyId { get; set; }
+    }
+
+
     public class CreatedLobby
     {
         public Guid LobbyId { get; set; }

@@ -4,6 +4,7 @@
 @using Akka.AspNetCore
 @using Microsoft.AspNetCore.SignalR.Client
 @using Shared;
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
 
@@ -24,7 +25,8 @@
     private string key;
     private User response = new();
     private HubConnection? hubConnection;
-    private CreatedLobby GotSingalRMessage;
+    private Lobby GotSingalRMessage = new();
+    // public NavigationManager navigationManager { get; set; } = new();
 
 
 
@@ -52,13 +54,14 @@
     protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
-            //.WithUrl("http://signalrapi:8080/ComunicationHub")
-            .WithUrl("http://localhost:32772/ComunicationHub")
+        .WithUrl("http://signalr.localhost/ComunicationHub")
+            //.WithUrl("http://localhost:32772/ComunicationHub")
             .Build();
 
-        hubConnection.On<CreatedLobby>("ReceiveMessage", (message) =>
+        hubConnection.On<Lobby>("ReceiveMessage", (message) =>
         {
             GotSingalRMessage = message;
+            NavigationManager.NavigateTo($"/LobbyStartPage?lobby={GotSingalRMessage}");
 
         });
 

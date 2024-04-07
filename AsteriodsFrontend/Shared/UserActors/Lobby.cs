@@ -5,13 +5,14 @@ using System.Net.Http.Json;
 
 namespace Actors.UserActors
 {
-    public enum State { Joining, Playing, Over }
+    public enum GameState { Joining, Playing, Over }
 
     public class LobbyActor : ReceiveActor
     {
         private readonly HttpClient _httpClient;
-        public State CurrentState { get; set; }
+        public GameState CurrentState { get; set; }
         public List<User> Players { get; set; }
+        public User HeadPlayer { get; set; }
         public LobbyActor()
         {
             _httpClient = new HttpClient();
@@ -19,15 +20,27 @@ namespace Actors.UserActors
 
             Receive<Lobby>((lobby) =>
             {
-                CurrentState = State.Joining;
-                Players.Add(new User() { Username = lobby.HeadPlayer });
+                CurrentState = GameState.Joining;
+                HeadPlayer = new User() { Username = lobby.HeadPlayer };
+                Players.Add(HeadPlayer);
 
                 TalkToGateway(lobby);
                 Console.WriteLine($"Created a new state");
 
-                Sender.Tell(new CreatedLobby { LobbyId = lobby.Id });
+                Sender.Tell(lobby);
+            });
+
+            Receive<ChangeGameState>(state =>
+            {
+                if (HeadPlayer.Username == state.user)
+                {
+                    CurrentState = state.lobbyState;
+                    Sender.Tell(CurrentState);
+                }
             });
         }
+
+
 
         public void TalkToGateway(Lobby lobby)
         {
