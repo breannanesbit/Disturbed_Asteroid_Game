@@ -25,7 +25,7 @@ namespace Actors.UserActors
             Receive<AddUserToLobby>(user =>
             {
                 CurrentState = UserState.Playing;
-
+                Sender.Tell(CurrentState);
             });
         }
 

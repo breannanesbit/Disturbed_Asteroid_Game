@@ -53,7 +53,7 @@ namespace Actors.UserActors
                 var existingUser = Lobbies.Find(g => g.Id == state.lobbyId);
                 if (existingUser != null)
                 {
-                    existingUser.ActorRef.Tell(state);
+                    existingUser.ActorRef.Forward(state);
                 }
             });
         }
