@@ -19,11 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Actors\Actors.csproj" />
+    <Folder Include="Css\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Css\" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>
