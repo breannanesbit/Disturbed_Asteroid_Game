@@ -15,17 +15,25 @@
 {
     <p>@response.Username</p>
     <p>@response.Path</p>
-    <button class="btn btn-primary" @onclick="() => JoinLobby()">JoinLobby</button>
+    <button class="btn btn-primary" @onclick="() => CreateANewLobby()">Create a new Lobby</button>
 
 }
-
+@* @foreach(var lobby in )
+{
+    <button class="btn btn-danger" @onclick="() => JoinLobby()">Join Lobby</button>
+    
+}
+ *@
 @code {
     private string key;
     private User response = new();
+    private List<Lobby> lobbyList = new();
+    //private HubConnection? hubConnection;
+
 
     private async Task SendKey()
     {
-        var u = new User() { Username= key};
+        var u = new User() { Username = key };
 
         // Obtain a reference to the router actor
         var result = await akkaService.Ask<User>(u);
@@ -33,9 +41,49 @@
         response = result;
     }
 
-    private async Task JoinLobby()
+    private async Task CreateANewLobby()
     {
-        
+        var nl = new NewLobbyObject() { username = key };
+
+        var result = await akkaService.Ask<ChangeUserState>(nl);
+        //lobbyList.Add(result);
+        if (result != null)
+        {
+
+            Console.WriteLine("made it all the way");
+        }
     }
+
+    /*private async Task JoinLobby()
+    {
+        var lobby = new Lobby() {HeadPlayer = "a", };
+        var result = await akkaService.Ask<Lobby>(lobby);
+        if (result != null)
+        {
+            Console.WriteLine("Made it to the lobby");
+        }
+    }*/
+
+    /*protected override async Task OnInitializedAsync()
+        {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl("http://signalrapi:8080/ComunicationHub")
+        .Build();
+
+        hubConnection.On<string>("ReceiveMessage", (message) =>
+            {
+            // Handle received message
+        });
+
+        await hubConnection.StartAsync();
+    }*/
+
+    // Dispose the hub connection when component is disposed
+    /*public async ValueTask DisposeAsync()
+        {
+        if (hubConnection != null)
+            await hubConnection.DisposeAsync();
+    }*/
+
 }
 

@@ -1,21 +1,18 @@
 ﻿using Akka.Actor;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Actors.UserActors
 {
-    public class HeadSupervisor :ReceiveActor
+    public class HeadSupervisor : ReceiveActor
     {
         private readonly IActorRef newLobbySupervisor;
         private readonly IActorRef newUserSupervisor;
+        //private readonly IActorRef _signalRActor;
 
-        public HeadSupervisor()
+        public HeadSupervisor(IActorRef newUserSupervisor, IActorRef newLobbySupervisor)
         {
-            newLobbySupervisor = Context.ActorOf(LobbySupervisor.Props());
-            newUserSupervisor = Context.ActorOf(UserSupervisor.Props());
+            this.newUserSupervisor = newUserSupervisor;
+            this.newLobbySupervisor = newLobbySupervisor;
+
 
             Receive<Lobby>((lobby) =>
             {
@@ -25,7 +22,11 @@ namespace Actors.UserActors
             {
                 newUserSupervisor.Forward(user);
             });
-
+            Receive<NewLobbyObject>((newLobby) =>
+            {
+                newUserSupervisor.Forward(newLobby);
+            });
         }
     }
+
 }

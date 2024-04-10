@@ -1,0 +1,13 @@
+﻿.lobby-body {
+    background: #212121;
+}
+body {
+    background: #212121;
+    color: white;
+}
+
+asteroid {
+    height: 40px;
+    width: 40px
+}
+

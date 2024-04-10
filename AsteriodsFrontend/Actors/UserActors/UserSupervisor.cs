@@ -4,9 +4,14 @@ using Akka.Actor;
 public class UserSupervisor : ReceiveActor
 {
     private List<UsersActorInfo> UserActors { get; set; }
+    //public IActorRef SignalRActor { get; }
 
-    public UserSupervisor()
+    private readonly IActorRef newLobbySupervisor;
+
+    public UserSupervisor(/*IActorRef SignalRActor,*/ IActorRef newLobbySupervisor)
     {
+        //this.SignalRActor = SignalRActor;
+        this.newLobbySupervisor = newLobbySupervisor;
         UserActors = new List<UsersActorInfo>();
 
         Receive<User>(user =>
@@ -28,9 +33,25 @@ public class UserSupervisor : ReceiveActor
                 Console.WriteLine($"UserActor already exists for {user.Username}");
             }
         });
+
+        Receive<NewLobbyObject>(NewLobby =>
+        {
+            var existingUser = UserActors.Find(u => u.Username == NewLobby.username);
+
+            if (existingUser != null)
+            {
+                newLobbySupervisor.Tell(NewLobby);
+
+                var c = new ChangeUserState() { ChangedState = UserState.Playing };
+
+                existingUser.ActorRef.Forward(c);
+
+            }
+
+        });
     }
-    public static Props Props() =>
-         Akka.Actor.Props.Create(() => new UserSupervisor());
+    //public static Props Props() =>
+    //     Akka.Actor.Props.Create(() => new UserSupervisor());
 
 }
 

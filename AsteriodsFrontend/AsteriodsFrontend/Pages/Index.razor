@@ -1,27 +1,179 @@
 ﻿@page "/"
-@using AsteriodsFrontend.Services
-@inject AkkaService akkaService
-<PageTitle>Index</PageTitle>
+@*@using AsteriodsFrontend.Services
+@inject AkkaService akkaService *@
+<PageTitle>Lobby</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="row">
+    <p class="col col-5 ">State: Playing</p>
+    <button type="button" class="btn btn-danger col col-3" onclick="HandleEnd">End Game</button>
+</div>
+<button type="button" class="btn btn-success" @onclick="HandleBoxClick">Test click</button>
+<div class="@boxClass"
+     style="height: 750px; width: 750px; position:relative;" @onkeydown="HandleKeyPress" @onclick="HandleBoxClick" tabindex="0">
+    <div style="width:50px; position:absolute; left:@(state.x)px; top: @(state.y)px;" class=" col">
+        <div class="row text-center">
+            <img class="ship" src="images/ships/space-ship.svg" alt="ship" />
 
-Welcome to your new app.
-<input type="text" @bind="key" />
-<button class="btn btn-primary" @onclick="SendToActor">Send To Actor</button>
-
-<SurveyPrompt Title="How is Blazor working for you?" />
-<p>
-    @responseMessage
-</p>
+        </div>
+    </div>
+    @foreach (var asteroid in asteroids)
+    {
+        <img class="asteroid" style="height:65px;background:#ffffff; width: 65px;position:absolute; left:@(asteroid.X)px; top:@(asteroid.Y)px" src="../../images/Asteroids/@asteroid.ImagePath" alt="asteroid" />
+    }
+</div>
 @code {
-    private string responseMessage;
+
+    private class ShipState
+    {
+        public int x { get; set; } = 0;
+        public int y { get; set; } = 0;
+        public int BoundaryLeft { get; } = 0;
+        public int BoundaryTop { get; } = 0;
+        public int BoundaryRight { get; } = 700;
+        public int BoundaryBottom { get; } = 700;
+        public int Health { get; set; } = 100;
+        public int Angle { get; set; } = 0;
+    }
+    private class Asteroid
+    {
+        public int X { get; set; } = 0;
+        public int Y { get; set; } = 0;
+        public int Health { get; set; } = 100;
+        public string ImagePath { get; set; } = "";
+        public int Speed { get; set; } = 5;
+        public bool Diagonal { get; set; }
+        public int BoundaryLeft { get; } = 0;
+        public int BoundaryTop { get; } = 0;
+        public int BoundaryRight { get; } = 700;
+        public int BoundaryBottom { get; } = 700;
+
+        public void MoveDown()
+        {
+            Y += Speed;
+            //if the asteroid goes in border it needs to disapear or bounce off.
+        }
+        public void MoveDiagonal()
+        {
+            X -= Speed;
+            Y += Speed;
+        }
+        public void MoveUp()
+        {
+            Y -= Speed;
+        }
+        public void MoveLeft()
+        {
+            X -= Speed;
+        }
+        public void MoveRight()
+        {
+            X += Speed;
+        }
+        public bool CheckBoundaries()
+        {
+            if(X >= BoundaryLeft && X <= BoundaryRight && Y <= BoundaryBottom && Y >= BoundaryTop )
+            {
+                return true;
+            }
+            else{ return false; }
+        }
+    }
+    private List<Asteroid> asteroids = new List<Asteroid>();
+    private ShipState state = new ShipState();
+    private bool isBoxClicked = false;
+    private string boxClass => isBoxClicked ? "lobby-body border border-success" : "lobby-body border border-light";
+    private Timer timer;
+    private int TurnStep = 10;
+    private double radiansPerDegree = Math.PI / 180;
+    //private const int BoundaryLeft = 200;
+    //private const int BoundaryTop = 50;
+
+    //move forward, left, right,
+    protected override async Task OnInitializedAsync()
+    {
+        await InitializeAsteroids();
+        timer = new Timer(async (_) => await MoveAsteroids(), null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
+        Console.WriteLine(timer);
+    }
+    private async Task InitializeAsteroids()
+    {
+        asteroids.Add(new Asteroid
+            {
+                X = 50,
+                Y = 50,
+                ImagePath = "asteroid-2.svg",
+                Diagonal = true,
+            });
+    }
+    private async Task MoveAsteroids()
+    {
+        for (int i = asteroids.Count - 1; i >= 0; i--)
+        {
+            var asteroid = asteroids[i];
+            if (asteroid.Diagonal)
+            {
+                asteroid.MoveDiagonal();
+                if (!asteroid.CheckBoundaries())
+                {
+                    asteroid.X = 200;
+                    asteroid.Y = 200;
+                    //asteroids.RemoveAt(i);
+                }
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        var key = e.Key;
+        const int step = 10;
+        switch (key)
+        {
+            case "w":
+                //if(state.y - step >= state.BoundaryTop)
+                //state.y -= step;
+                double angleInRadians = state.Angle * radiansPerDegree;
+                int deltaX = (int)Math.Round(step * Math.Sin(angleInRadians));
+                int deltaY = (int)Math.Round(step * Math.Cos(angleInRadians));
+                state.x += deltaX;
+                state.y -= deltaY;
+                break;
+            case "s":
+                //if (state.y - step >= state.BoundaryBottom)
+                //state.y += step;
+                //int backwardDeltaX = -(int)Math.Round(step * Math.Sin(angleInRadians));
+                //int backwardDeltaY = -(int)Math.Round(step * Math.Cos(angleInRadians));
+                //state.x += backwardDeltaX;
+                //state.y -= backwardDeltaY;
+                break;
+            case "a":
+                //if(state.x - step >= state.BoundaryLeft)
+                //state.x -= step;
+                state.Angle -= TurnStep;
+                break;
+            case "d":
+                //if (state.x - step >= state.BoundaryRight)
+                //state.x += step;
+                state.Angle += TurnStep;
+                break;
+        }
+        StateHasChanged();
+        //await Task.CompletedTask;
+    }
+    private void HandleBoxClick()
+    {
+        Console.WriteLine("The box is clicked:", isBoxClicked);
+        isBoxClicked = true;
+    }
+    /*private string responseMessage;
     private string key;
 
     private async Task SendToActor()
-    {
+        {
         akkaService.Tell(key);
         responseMessage = "";
         var response = await akkaService.Ask<string>(key);
         responseMessage = response;
-    }
+    }*/
 }

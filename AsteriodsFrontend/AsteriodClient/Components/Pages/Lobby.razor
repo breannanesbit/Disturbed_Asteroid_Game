@@ -1,0 +1,54 @@
+﻿@page "/lobby"
+@rendermode InteractiveServer
+<h3>lobby</h3>
+
+@* <img src="../images/ships/space-ship.svg" alt="Space Ship" /> *@
+<p>this is the page</p>
+<div style="height: 750px; width:750px; position:relative;"class="border border-light" tabindex="0" @onkeydown="HandleKeyPress" @onclick="HandleBoxClick">
+    <img class="ship" style="position:absolute; left:@(state.x)px; top:@(state.y)px" src="images/ships/space-ship.svg" alt="ship" />
+
+</div>
+    
+@code {
+    private class ShipState
+    {
+        public int x { get; set; } = 50;
+        public int y { get; set; } = 50;
+        public int BoundaryLeft { get; } = 0;
+        public int BoundaryTop { get; } = 0;
+        public int BoundaryRight { get; } = 700;
+        public int BoundaryBottom { get; } = 700;
+    }
+    private ShipState state = new ShipState();
+    public async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        var key = e.Key;
+        const int step = 10;
+        switch (key)
+        {
+            case "w":
+                //if(state.y - step >= state.BoundaryTop)
+                state.y -= step;
+                break;
+            case "s":
+                //if (state.y - step >= state.BoundaryBottom)
+                state.y += step;
+                break;
+            case "a":
+                //if(state.x - step >= state.BoundaryLeft)
+                state.x -= step;
+                break;
+            case "d":
+                //if (state.x - step >= state.BoundaryRight)
+                state.x += step;
+                break;
+        }
+        StateHasChanged();
+        //await Task.CompletedTask;
+    }
+
+    public void HandleBoxClick()
+    {
+        
+    }
+}

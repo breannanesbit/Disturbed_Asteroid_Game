@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Components\images\ships\space-ship.svg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Akka.Bootstrap.Docker" Version="0.5.3" />
     <PackageReference Include="Akka.Cluster" Version="1.5.18" />
     <PackageReference Include="Akka.DependencyInjection" Version="1.5.18" />
@@ -16,6 +20,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Actors\Actors.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Css\" />
   </ItemGroup>
 
 </Project>
