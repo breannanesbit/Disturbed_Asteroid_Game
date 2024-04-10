@@ -38,25 +38,44 @@ namespace Actors.UserActors
 
             Receive<AddUserToLobby>(state =>
             {
-                CurrentLobby.Players.Add(new User() { Username = state.username });
-                Sender.Tell(CurrentLobby.Players.Count);
+                // Check if the user is already in the lobby
+                if (CurrentLobby.Players.Any(u => u.Username == state.username))
+                {
+                    Sender.Tell(CurrentLobby.Players.Count); // Reply with the current player count
+                }
+                else
+                {
+                    // Add the user to the lobby
+                    CurrentLobby.Players.Add(new User { Username = state.username });
+                    // Reply with the updated lobby state
+                    Sender.Tell(CurrentLobby.Players.Count);
+                }
             });
+
         }
 
 
 
         public void TalkToGateway(Lobby lobby)
         {
-            var serializedLobby = JsonConvert.SerializeObject(lobby);
-
-
-            var kp = new KeyValue
+            try
             {
-                key = lobby.Id.ToString(),
-                value = serializedLobby
-            };
+                var serializedLobby = JsonConvert.SerializeObject(lobby);
 
-            _httpClient.PostAsJsonAsync($"http://asteriodsapi:2010/Gateway/newValue", kp);
+
+                var kp = new KeyValue
+                {
+                    key = lobby.Id.ToString(),
+                    value = serializedLobby
+                };
+
+                _httpClient.PostAsJsonAsync($"http://asteriodsapi:2010/Gateway/newValue", kp);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public static Props Props() =>

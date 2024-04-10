@@ -16,7 +16,6 @@ namespace Actors.UserActors
         public Guid Id { get; set; }
         public string HeadPlayer { get; set; }
         public IActorRef ActorRef { get; set; }
-
         public List<User> Players { get; set; }
     }
 

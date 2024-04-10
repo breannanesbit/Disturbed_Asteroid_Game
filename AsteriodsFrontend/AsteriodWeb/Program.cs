@@ -31,11 +31,11 @@ builder.Services.AddOpenTelemetry()
         { "deployment.environment", builder.Environment.EnvironmentName }
     }))
     .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation()
-        .AddConsoleExporter()
+        //.AddConsoleExporter()
         .AddOtlpExporter())
     .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation()
         .AddRuntimeInstrumentation()
-        .AddConsoleExporter()
+        //.AddConsoleExporter()
         .AddOtlpExporter());
 
 builder.Host.UseSerilog((context, loggerConfig) =>

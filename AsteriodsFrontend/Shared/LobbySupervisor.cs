@@ -30,6 +30,7 @@ namespace Actors.UserActors
 
             Receive<GameLobby>(CreadtedLobby =>
             {
+
                 SignalRActor.Tell(CreadtedLobby);
             });
 

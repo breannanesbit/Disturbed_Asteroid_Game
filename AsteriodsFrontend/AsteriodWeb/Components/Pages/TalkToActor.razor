@@ -11,7 +11,7 @@
 <h3>User Input</h3>
 
 <input @bind="key" />
-<button class="btn btn-primary" @onclick="() => SendKey()">Send</button>
+<button class="btn btn-primary" @onclick="SendKey">Send</button>
 
 @if (!string.IsNullOrEmpty(response.Username))
 {
@@ -26,12 +26,12 @@
     private User response = new();
     private HubConnection? hubConnection;
     private Lobby GotSingalRMessage = new();
-    // public NavigationManager navigationManager { get; set; } = new();
 
 
 
     private async Task SendKey()
     {
+        Console.WriteLine("Made it to sendKey");
         var u = new User() { Username= key};
 
         // Obtain a reference to the router actor
@@ -53,19 +53,23 @@
 
     protected override async Task OnInitializedAsync()
     {
-        hubConnection = new HubConnectionBuilder()
-        .WithUrl("http://signalr.localhost/ComunicationHub")
-            //.WithUrl("http://localhost:32772/ComunicationHub")
-            .Build();
+         hubConnection = new HubConnectionBuilder()
+         .WithUrl("http://signalrapi:8080/ComunicationHub")
+             //.WithUrl("http://localhost:32794/ComunicationHub")
+             .Build();
 
-        hubConnection.On<Lobby>("ReceiveMessage", (message) =>
-        {
-            GotSingalRMessage = message;
-            NavigationManager.NavigateTo($"/LobbyStartPage?lobby={GotSingalRMessage}");
+         hubConnection.On<Lobby>("ReceiveMessage", (message) =>
+         {
+             Console.WriteLine("made it");
+              GotSingalRMessage = message;
+              NavigationManager.NavigateTo($"/LobbyStartPage?lobby={GotSingalRMessage}");
+             });
 
-        });
+        Console.WriteLine("Before start up");
 
-        await hubConnection.StartAsync();
+          await hubConnection.StartAsync();
+        Console.WriteLine("Connection made it");
+
     }
 
     // Dispose the hub connection when component is disposed

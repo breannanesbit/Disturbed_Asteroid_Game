@@ -1,10 +1,12 @@
 ﻿@page "/lobby"
+@using Actors.UserActors
+
 <PageTitle>lobby</PageTitle>
 @if (lobby != null)
 {
     <div class="row">
-    <p class="col col-5 ">State: @lobby.lobbyState</p>
-    <button type="button" class="btn btn-danger col col-3" onclick="HandleEnd">End Game</button>
+@*     <p class="col col-5 ">State: @lobby.lobbyState</p>
+ *@    <button type="button" class="btn btn-danger col col-3" onclick="HandleEnd">End Game</button>
 </div>
 <div class="@boxClass" 
      style="height: 750px; width: 750px; position:relative;" @onkeydown="HandleKeyPress" @onclick="HandleBoxClick" tabindex="0">
