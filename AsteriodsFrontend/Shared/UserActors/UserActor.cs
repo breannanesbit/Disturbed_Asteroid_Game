@@ -21,6 +21,12 @@ namespace Actors.UserActors
                 CurrentState = user.ChangedState;
                 Console.WriteLine($"user state is now : {CurrentState}");
             });
+
+            Receive<AddUserToLobby>(user =>
+            {
+                CurrentState = UserState.Playing;
+                Sender.Tell(CurrentState);
+            });
         }
 
         public static Props Props() =>

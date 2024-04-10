@@ -51,6 +51,21 @@ public class UserSupervisor : ReceiveActor
             }
 
         });
+
+        Receive<AddUserToLobby>(AddUserToLobby =>
+        {
+            var existingUser = UserActors.Find(u => u.Username == AddUserToLobby.username);
+
+            if (existingUser == null)
+            {
+                // If not, create a new UserActor and add it to the list
+                var newUserActor = Context.ActorOf(UserActor.Props(), AddUserToLobby.username);
+                UserActors.Add(new UsersActorInfo { Username = AddUserToLobby.username, ActorRef = newUserActor });
+                newUserActor.Tell(newUserActor);
+
+                newLobbySupervisor.Tell(AddUserToLobby);
+            }
+        });
     }
     //public static Props Props() =>
     //     Akka.Actor.Props.Create(() => new UserSupervisor());

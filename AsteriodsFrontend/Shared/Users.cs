@@ -20,6 +20,15 @@ namespace Actors.UserActors
         public List<User> Players { get; set; }
     }
 
+    public class GameLobby
+    {
+        public Guid Id { get; set; }
+        public User HeadPlayer { get; set; }
+        public GameState CurrentState { get; set; }
+        public List<User> Players { get; set; } = new List<User>();
+    }
+
+
     public class User
     {
         public string Username { get; set; }
@@ -49,6 +58,14 @@ namespace Actors.UserActors
     {
         public Guid LobbyId { get; set; }
     }
+
+    public class AddUserToLobby
+    {
+        public string username { get; set; }
+        public Guid lobbyId { get; set; }
+
+    }
+
 
 
 }
