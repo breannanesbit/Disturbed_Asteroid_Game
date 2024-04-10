@@ -1,27 +1,25 @@
 ﻿@page "/lobby"
-@using Actors.UserActors
+@*@using AsteriodsFrontend.Services
+@inject AkkaService akkaService *@
+@rendermode InteractiveServer
+<PageTitle>Lobby</PageTitle>
 
-<PageTitle>lobby</PageTitle>
-@if (lobby != null)
-{
-    <div class="row">
-@*     <p class="col col-5 ">State: @lobby.lobbyState</p>
- *@    <button type="button" class="btn btn-danger col col-3" onclick="HandleEnd">End Game</button>
+<div class="row">
+    <p class="col col-5 ">State: Playing</p>
+    <button type="button" class="btn btn-danger col col-3" onclick="HandleEnd">End Game</button>
 </div>
-<div class="@boxClass" 
+<button type="button" class="btn btn-success" @onclick="HandleBoxClick">Test click</button>
+<div class="@boxClass"
      style="height: 750px; width: 750px; position:relative;" @onkeydown="HandleKeyPress" @onclick="HandleBoxClick" tabindex="0">
 
-    <img class="ship" style="position:absolute; left:@state.x px; top:@state.y px" src="images/ships/space-ship.svg" alt="ship" />
-
-    </div>
-}else
-{
-    <p>Loading ...</p>    
-}
+    <img class="ship" style="position:absolute; left:@(state.x)px; top:@(state.y)px" src="images/ships/space-ship.svg" alt="ship" />
+    @foreach (var asteroid in asteroids)
+    {
+        <img class="asteroid" style="position:absolute; left:@(asteroid.X)px; top:@(asteroid.Y)px" src="../../images/Asteroids/@asteroid.ImagePath" alt="asteroid" />
+    }
+</div>
 @code {
-    [Parameter]
-    public Lobby lobby { get; set; }
-    
+
     private class ShipState
     {
         public int x { get; set; } = 0;
@@ -31,17 +29,93 @@
         public int BoundaryRight { get; } = 700;
         public int BoundaryBottom { get; } = 700;
     }
+    private class Asteroid
+    {
+        public int X { get; set; } = 0;
+        public int Y { get; set; } = 0;
+        public int Health { get; set; } = 100;
+        public string ImagePath { get; set; } = "";
+        public int Speed { get; set; } = 5;
+        public bool Diagonal { get; set; }
+        public int BoundaryLeft { get; } = 0;
+        public int BoundaryTop { get; } = 0;
+        public int BoundaryRight { get; } = 700;
+        public int BoundaryBottom { get; } = 700;
+
+        public void MoveDown()
+        {
+            Y += Speed;
+            //if the asteroid goes in border it needs to disapear or bounce off.
+        }
+        public void MoveDiagonal()
+        {
+            X -= Speed;
+            Y += Speed;
+        }
+        public void MoveUp()
+        {
+            Y -= Speed;
+        }
+        public void MoveLeft()
+        {
+            X -= Speed;
+        }
+        public void MoveRight()
+        {
+            X += Speed;
+        }
+        public bool CheckBoundaries()
+        {
+            if (X >= BoundaryLeft && X <= BoundaryRight && Y <= BoundaryBottom && Y >= BoundaryTop)
+            {
+                return true;
+            }
+            else { return false; }
+        }
+    }
+    private List<Asteroid> asteroids = new List<Asteroid>();
     private ShipState state = new ShipState();
     private bool isBoxClicked = false;
-    private string boxClass => isBoxClicked ? "lobby-body clicked" : "lobby-body border";
+    private string boxClass => isBoxClicked ? "lobby-body border border-success" : "lobby-body border border-light";
+    private Timer timer;
     //private const int BoundaryLeft = 200;
     //private const int BoundaryTop = 50;
 
     //move forward, left, right,
+    protected override async Task OnInitializedAsync()
+    {
+        await InitializeAsteroids();
+        timer = new Timer(async (_) => await MoveAsteroids(), null, TimeSpan.Zero, TimeSpan.FromSeconds(0.001));
+    }
+    private async Task InitializeAsteroids()
+    {
+        asteroids.Add(new Asteroid
+            {
+                X = 50,
+                Y = 50,
+                ImagePath = "asteroid-2.svg",
+                Diagonal = true,
+            });
+    }
+    private async Task MoveAsteroids()
+    {
+        for (int i = asteroids.Count - 1; i >= 0; i--)
+        {
+            var asteroid = asteroids[i];
+            if (asteroid.Diagonal)
+            {
+                asteroid.MoveDiagonal();
+                if (!asteroid.CheckBoundaries())
+                {
+                    asteroids.RemoveAt(i);
+                }
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
 
     public async Task HandleKeyPress(KeyboardEventArgs e)
     {
-        Console.WriteLine("moving");
         var key = e.Key;
         const int step = 10;
         switch (key)
@@ -68,11 +142,8 @@
     }
     private void HandleBoxClick()
     {
+        Console.WriteLine("The box is clicked:", isBoxClicked);
         isBoxClicked = true;
-    }
-    private void HandleEnd()
-    {
-        //game is ended 
     }
     /*private string responseMessage;
     private string key;

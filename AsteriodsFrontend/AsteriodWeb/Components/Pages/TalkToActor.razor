@@ -11,7 +11,7 @@
 <h3>User Input</h3>
 
 <input @bind="key" />
-<button class="btn btn-primary" @onclick="SendKey">Send</button>
+<button class="btn btn-primary" @onclick="() => SendKey()">Send</button>
 
 @if (!string.IsNullOrEmpty(response.Username))
 {
@@ -51,7 +51,7 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    /*protected override async Task OnInitializedAsync()
     {
          hubConnection = new HubConnectionBuilder()
          .WithUrl("http://signalrapi:8080/ComunicationHub")
