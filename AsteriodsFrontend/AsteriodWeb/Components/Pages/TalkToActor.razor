@@ -51,10 +51,10 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    /*protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
-        .WithUrl("http://signalr.localhost/ComunicationHub")
+        .WithUrl("http://signalrApi:8080/ComunicationHub")
             //.WithUrl("http://localhost:32772/ComunicationHub")
             .Build();
 
@@ -66,7 +66,7 @@
         });
 
         await hubConnection.StartAsync();
-    }
+    }*/
 
     // Dispose the hub connection when component is disposed
     public async ValueTask DisposeAsync()

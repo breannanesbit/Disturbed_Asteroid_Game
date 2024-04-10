@@ -1,3 +1,4 @@
+using Actors;
 using Actors.UserActors;
 using Akka.Actor;
 using Akka.TestKit.Xunit2;
@@ -31,6 +32,26 @@ namespace AstoridsTest
         [Fact]
         public void AddUser_ToUserSupervisor()
         {
+            var probe = CreateTestProbe();
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var signalRActor = system.ActorOf(Props.Create<SignalRActor>(), "SignalRActor");
+            var newLobbySupervisor = system.ActorOf(Props.Create<LobbySupervisor>(), "NewLobbySupervisor");
+
+            var UserSup = system.ActorOf(Props.Create(() => new UserSupervisor(signalRActor, newLobbySupervisor)), "UserSupervisor");
+
+            var username = "TomRiddle";
+            var u = new User() { Username = username };
+
+
+            UserSup.Forward(u);
+            var response = probe.ExpectMsg<User>(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(response.Username, username);
+            //Assert.StartsWith("akka://MyTestSystem/user/UserSupervisor/TomRiddle", response.Path);
+        }
+        /*public void AddUser_ToUserSupervisor()
+        {
             var signalRProbe = CreateTestProbe();
             var newUserSupervisorProbe = CreateTestProbe();
             var newLobbySupervisorProbe = CreateTestProbe();
@@ -44,7 +65,7 @@ namespace AstoridsTest
             var response = newUserSupervisorProbe.ExpectMsg<User>(TimeSpan.FromSeconds(5));
             Assert.Equal(response.Username, username);
             //Assert.NotNull(response.Path);
-        }
+        }*/
         [Fact]
         public void AddLobby_ToLobbySupervisor()
         {
