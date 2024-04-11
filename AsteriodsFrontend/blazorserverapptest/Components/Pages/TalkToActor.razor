@@ -10,8 +10,8 @@
 
 <h3>User Input</h3>
 
-<input @bind="key" /> 
-<button class="btn btn-primary" @onclick="SendKey">Send</button>
+<input @bind="key" />
+<button class="btn btn-primary" @onclick="() => SendKey()">Send</button>
 
 @if (!string.IsNullOrEmpty(response.Username))
 {
@@ -19,13 +19,13 @@
     <p>@response.Path</p>
     <button class="btn btn-primary" @onclick="() => CreateANewLobby()">Create a new Lobby</button>
 
-} 
+}
 
 @code {
-     private string key = "";
+    private string key;
     private User response = new();
     private HubConnection? hubConnection;
-    private Lobby GotSingalRMessage = new(); 
+    private Lobby GotSingalRMessage = new();
 
 
 
@@ -37,7 +37,7 @@
         // Obtain a reference to the router actor
         var result = await akkaService.Ask<User>(u);
         Console.WriteLine(result);
-        response = result; 
+        response = result;
     }
 
     private async Task CreateANewLobby()
@@ -77,7 +77,7 @@
     {
         if (hubConnection != null)
             await hubConnection.DisposeAsync();
-    } 
+    }
 
 }
 
