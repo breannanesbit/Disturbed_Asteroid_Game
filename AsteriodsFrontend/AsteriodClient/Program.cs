@@ -1,6 +1,4 @@
-using Akka.Actor;
 using Akka.AspNetCore;
-using Akka.Configuration;
 using AsteriodClient.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,11 +10,11 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSignalR();
 
 
-builder.Services.AddSingleton(provider =>
-{
-    var config = ConfigurationFactory.ParseString(File.ReadAllText("akka.conf"));
-    return ActorSystem.Create("YourActorSystem", config);
-});
+//builder.Services.AddSingleton(provider =>
+//{
+//    var config = ConfigurationFactory.ParseString(File.ReadAllText("akka.conf"));
+//    return ActorSystem.Create("YourActorSystem", config);
+//});
 
 builder.Services.AddSingleton<IActorBridge, AkkaService>();
 
@@ -33,7 +31,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 
-app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();

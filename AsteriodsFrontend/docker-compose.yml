@@ -1,0 +1,141 @@
+version: '3.4'
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./ops/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - raft_network
+  
+  asteriodclient:
+    image: ${DOCKER_REGISTRY-}asteriodclient
+    build:
+      context: .
+      dockerfile: AsteriodClient/Dockerfile
+    ports:
+      - "4532:8080"
+    networks:
+      - raft_network
+
+
+  actors:
+    image: ${DOCKER_REGISTRY-}actors
+    build:
+      context: .
+      dockerfile: Actors/Dockerfile
+
+  raftapi:
+    build:
+      context: .
+      dockerfile: RaftAPI/Dockerfile
+    ports:
+      - "2002:8080"
+    environment:
+      - NODES="http://raftapi2:8080,http://raftapi3:8080"
+    networks:
+      - raft_network
+
+  raftapi2:
+    build:
+      context: .
+      dockerfile: RaftAPI/Dockerfile
+    ports:
+      - "2003:8080"
+    environment:
+      - NODES="http://raftapi:8080,http://raftapi3:8080"
+    networks:
+      - raft_network
+
+  raftapi3:
+    build:
+      context: .
+      dockerfile: RaftAPI/Dockerfile
+    ports:
+      - "2004:8080"
+    environment:
+      - NODES="http://raftapi2:8080,http://raftapi:8080"
+    networks:
+      - raft_network
+
+  asteriodsapi:
+    image: ${DOCKER_REGISTRY-}asteriodsapi
+    build:
+      context: .
+      dockerfile: AsteriodsAPI/Dockerfile
+    ports:
+      - "2010:8080"
+    environment:
+      - NODES="http://raftapi:8080,http://raftapi2:8080,http://raftapi3:8080"
+    networks:
+      - raft_network
+
+  signalrapi:
+    build: 
+      context: .
+      dockerfile: SignalR/Dockerfile
+    ports:
+      - "8000:8080"
+    networks:
+      - raft_network
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      # - ./prometheus:/etc/prometheus
+      - ./ops/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      # - ./loki:/etc/loki
+      - ./ops/loki.yml:/etc/grafana/provisioning/datasources/loki.yml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./provisioning:/etc/grafana/provisioning
+    depends_on:
+      - loki
+      - prometheus
+    networks:
+      - monitoring
+
+  otel-collector:
+    image: otel/opentelemetry-collector
+    container_name: otel-collector
+    ports:
+      - "4317:4317"
+    volumes:
+      - ./ops/collector-config.yaml:/etc/otel-collector/config.yaml
+    networks:
+      - monitoring
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - monitoring
+
+networks:
+  raft_network:
+  monitoring:
+  
