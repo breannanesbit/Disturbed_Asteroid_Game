@@ -14,7 +14,7 @@
 
 @code {
     [Parameter]
-    public Actors.UserActors.Lobby Lobby1 { get; set; }
+    public GameLobby Lobby1 { get; set; }
     private HubConnection? hubConnection;
 
 
@@ -48,7 +48,7 @@
     {
        var cgs = new ChangeGameState
             {
-                user = Lobby1.HeadPlayer,
+                user = Lobby1.HeadPlayer.Username,
                 lobbyId = Lobby1.Id,
                 lobbyState = GameState.Playing
             };
