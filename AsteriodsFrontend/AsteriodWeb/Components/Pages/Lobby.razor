@@ -3,23 +3,26 @@
 <PageTitle>Lobby</PageTitle>
 
 <div class="row">
-    <p class="col col-5">State: Playing</p>
+    <p class="col col-5">State: @(state.isDead ? "Game Over": "Playing")</p>
     <button type="button" class="btn btn-danger col col-3" @* @onclick="HandleEnd" *@>End Game</button>
 </div>
-
-<button type="button" class="btn btn-success" @onclick="HandleBoxClick">Test click</button>
+<br />
 
 <div class="@boxClass" style="height: 750px; width: 750px; position:relative;" @onkeydown="HandleKeyPress" @onclick="HandleBoxClick" tabindex="0">
-    <div style="width:50px; transform: rotate(@(state.Angle)deg); transform-origin: center; position:absolute; left:@(state.x)px; top: @(state.y)px;" class=" col">
-        <div class="row text-center">
-            <img class="ship" src="images/ships/space-ship.svg" alt="ship" />
+    @foreach(var lazer in lazers)
+    {
+        <img style="transform: rotate(@(lazer.Angle)deg); transform-origin: center;position:absolute; z-index: 1; left:@(lazer.x)px; top: @(lazer.y)px;" src="images/ships/lazer.svg" alt="lazer"/>
+    }
+    <div style="width:50px; z-index:0;  position:absolute; left:@(state.x - 21)px; top: @(state.y-10)px;" class=" col">
+        <div class="row text-center"aa>
+            <img class="ship" src="images/ships/space-ship.svg" alt="ship" style="transform: rotate(@(state.Angle)deg); transform-origin: center;" />
         </div>
         <div class="progress row" style="height:10px;">
             <div class="progress-bar bg-success" role="progressbar" style="width: @(state.Health)%" aria-valuenow="@(state.Health)" aria-valuemin="0" aria-valuemax="100">
             </div>
         </div>
     </div>
-
+    <p style="color:red;width:fit-content; position:relative; left:@(state.x)px; top:@(state.y)px;">.</p>
     @foreach (var asteroid in asteroids)
     {
         <div style="width:65px; position:absolute; left:@(asteroid.X)px; top: @(asteroid.Y)px;" class=" col">
@@ -27,7 +30,7 @@
                 <img class="asteroid"  src="../../images/Asteroids/@asteroid.ImagePath" alt="asteroid" />
             </div>
             <div class="progress row" style="height:10px;">
-                <div class="progress-bar bg-success" role="progressbar" style="width: @(asteroid.Health)%" aria-valuenow="@(state.Health)" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar bg-success" role="progressbar" style="width: @(asteroid.Health)%" aria-valuenow="@(asteroid.Health)" aria-valuemin="0" aria-valuemax="100">
                 </div>
             </div>
         </div>
@@ -45,6 +48,60 @@
         public int BoundaryBottom { get; } = 700;
         public int Health { get; set; } = 100;
         public int Angle { get; set; } = 0;
+        public int HitBox { get; set; } = 25;
+        public bool isDead { get; set; } = false;
+
+        public void Damage()
+        {
+            Health -= 10;
+            if(Health <= 0)
+            {
+                Health = 0;
+                isDead = true;
+            }
+        }
+        public bool CheckBox(int x, int y)
+        {
+            return x >= this.x - 25 && x <= this.x + 25 && y >= this.y - 25 && y <= this.y + 25;
+        }
+    }
+
+    private class Lazer
+    {
+        public int x { get; set; } = 0;
+        public int y { get; set; } = 0;
+        public int BoundaryLeft { get; } = 0;
+        public int BoundaryTop { get; } = 0;
+        public int BoundaryRight { get; } = 700;
+        public int BoundaryBottom { get; } = 700;
+        public int Speed { get; } = 20;
+        //public int Health { get; set; } = 100;
+        public int Damage { get; } = 50;
+        public int Angle { get; set; } = 0;
+        private double radiansPerDegree = Math.PI / 180;
+
+        public bool Move()
+        {
+            double angleInRadians = Angle * radiansPerDegree;
+
+            int deltaX = (int)Math.Round(Speed * Math.Sin(angleInRadians));
+            int deltaY = (int)Math.Round(Speed * Math.Cos(angleInRadians));
+            x += deltaX;
+            y -= deltaY;
+
+            if (!CheckBoundaries())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public bool CheckBoundaries()
+        {
+            return x >= BoundaryLeft && x <= BoundaryRight && y <= BoundaryBottom && y >= BoundaryTop;
+        }
     }
 
     private class Asteroid
@@ -60,9 +117,18 @@
         public string Movement { get; set; } = "";
         public int BoundaryLeft { get; } = 0;
         public int BoundaryTop { get; } = 0;
-        public int BoundaryRight { get; } = 700;
-        public int BoundaryBottom { get; } = 700;
+        public int BoundaryRight { get; } = 695;
+        public int BoundaryBottom { get; } = 695;
+        public int HitBox { get; set; } = 25;
 
+        public void Damage()
+        {
+            Health -= 10;
+        }
+        public bool CheckBox(int x, int y)
+        {
+            return x >= this.X - 25 && x <= this.X + 25 && y >= this.Y - 25 && y <= this.Y + 25;
+        }
         public void Move()
         {
             switch(Movement)
@@ -83,11 +149,11 @@
                     MoveRight();
                     break;
             } 
-                if (!CheckBoundaries())
-                {
-                    X = spawnX;
-                    Y = spawnY;
-                }
+            if (!CheckBoundaries())
+            {
+                X = spawnX;
+                Y = spawnY;
+            }
         }
 
 
@@ -125,6 +191,7 @@
     }
 
     private List<Asteroid> asteroids = new List<Asteroid>();
+    private List<Lazer> lazers = new List<Lazer>();
     private ShipState state = new ShipState();
     private bool isBoxClicked = false;
     private string boxClass => isBoxClicked ? "lobby-body border border-success" : "lobby-body border border-light";
@@ -135,7 +202,17 @@
     protected override async Task OnInitializedAsync()
     {
         await InitializeAsteroids();
-        timer = new Timer(async (_) => await MoveAsteroids(), null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
+        lazers.Add(new Lazer
+            {
+                x = state.x,
+                y = state.y,
+                Angle = state.Angle,
+            });
+        timer = new Timer(async (_) => 
+        {
+            await MoveAsteroids();
+            await MoveLazers();
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
     }
 
     private async Task InitializeAsteroids()
@@ -193,13 +270,50 @@
         {
             var asteroid = asteroids[i];
             asteroid.Move();
-            
+            if(asteroid.Health <= 0)
+            { asteroids.Remove(asteroid); }
+            if(state.CheckBox(asteroid.X, asteroid.Y))
+            {
+                state.Damage();
+            }
         }
         await InvokeAsync(StateHasChanged);
     }
+    private async Task MoveLazers()
+    {
+        for (int i = lazers.Count - 1; i >= 0; i--)
+        {
+            var lazer = lazers[i];
+            var isNotOnBoard = lazer.Move();
+            if(isNotOnBoard)
+            {
+                lazers.Remove(lazer);
+            }
+            bool collisionDetected = false; 
+            for (int k = asteroids.Count - 1; k >= 0; k--)
+            {
+                var asteroid = asteroids[k];
+                if (asteroid.CheckBox(lazer.x, lazer.y))
+                {
+                    asteroid.Damage();
+                    collisionDetected = true; 
+                    break; 
+                }
+            }
+            if (collisionDetected)
+            {
+                lazers.Remove(lazer);
+            }
 
+        }
+        await InvokeAsync(StateHasChanged);
+    }
     public async Task HandleKeyPress(KeyboardEventArgs e)
     {
+        if(state.isDead)
+        {
+            return;
+        }
         var key = e.Key;
         const int step = 10;
         double angleInRadians = state.Angle * radiansPerDegree;
@@ -223,6 +337,17 @@
                 break;
             case "d":
                 state.Angle += TurnStep;
+                break;
+            case "l":
+                if (lazers.Count < 7)
+                {
+                    lazers.Add(new Lazer
+                        {
+                            x = state.x,
+                            y = state.y,
+                            Angle = state.Angle,
+                        });
+                }
                 break;
         }
         StateHasChanged();
