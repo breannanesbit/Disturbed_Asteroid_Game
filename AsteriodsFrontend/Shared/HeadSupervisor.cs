@@ -30,6 +30,15 @@ namespace Actors.UserActors
             {
                 newLobbySupervisor.Forward(state);
             });
+            Receive<AddUserToLobby>((user) =>
+            {
+                newUserSupervisor.Forward(user);
+            });
+            Receive<AllLobbies>((lobbies) =>
+            {
+                newLobbySupervisor.Forward(lobbies);
+            });
+
         }
     }
 

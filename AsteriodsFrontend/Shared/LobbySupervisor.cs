@@ -30,7 +30,7 @@ namespace Actors.UserActors
 
             Receive<GameLobby>(CreadtedLobby =>
             {
-
+                Console.WriteLine($"made it to call to signalR actor {SignalRActor.Path}");
                 SignalRActor.Tell(CreadtedLobby);
             });
 
@@ -56,6 +56,12 @@ namespace Actors.UserActors
                 {
                     existingUser.ActorRef.Forward(state);
                 }
+            });
+
+            Receive<AllLobbies>(lobbies =>
+            {
+                SignalRActor.Tell(Lobbies);
+                Sender.Tell(Lobbies);
             });
         }
         //public static Props Props() =>

@@ -65,6 +65,12 @@ namespace Actors.UserActors
 
     }
 
+    public class AllLobbies
+    {
+        public List<Lobby> Lobbies { get; set; }
+    }
+
+
 
 
 }

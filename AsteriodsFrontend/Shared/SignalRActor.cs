@@ -13,8 +13,10 @@ namespace Actors
         {
             _hubContext = hubContext;
 
-            Receive<ChangeUserState>(message =>
+            Receive<GameLobby>(message =>
             {
+                Console.WriteLine($"In signalR actor {message}");
+                Console.WriteLine($"hub connection: {_hubContext.Clients.All.ToString()}");
                 _hubContext.Clients.All.SendAsync("SendMessage", message);
             });
 
@@ -22,6 +24,11 @@ namespace Actors
             {
                 //will need to change this so only the players recieve the message for this lobby
                 _hubContext.Clients.All.SendAsync("StartGame", message);
+            });
+
+            Receive<AllLobbies>(message =>
+            {
+                _hubContext.Clients.All.SendAsync("AllLobbiesSend", message);
             });
         }
     }

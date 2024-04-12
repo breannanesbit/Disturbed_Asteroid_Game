@@ -17,6 +17,7 @@ namespace Actors.UserActors
 
             Receive<Lobby>((lobby) =>
             {
+                Console.WriteLine("made it to the lobby actor");
                 CurrentLobby.CurrentState = GameState.Joining;
                 CurrentLobby.HeadPlayer = new User() { Username = lobby.HeadPlayer };
                 CurrentLobby.Players.Add(CurrentLobby.HeadPlayer);
