@@ -8,7 +8,10 @@ namespace SignalRAPI.Hub
         public async Task SendMessage(GameLobby message)
         {
             Console.WriteLine("in hub");
-            await Clients.All.SendAsync("ReceiveMessage", message);
+
+            var client = Clients.Client(message.HeadPlayer.hubConnection);
+            Console.WriteLine($"hub connection: {client}");
+            await client.SendAsync("ReceiveMessage", message);
         }
 
         public async Task StartGame(GameState message)
@@ -16,8 +19,9 @@ namespace SignalRAPI.Hub
             await Clients.All.SendAsync("GameStarted", message);
         }
 
-        public async Task AllLobbiesSend(List<Lobby> lobbies)
+        public async Task AllLobbiesSend(AllLobbies lobbies)
         {
+            Console.WriteLine("hub all lobbies");
             await Clients.All.SendAsync("GetAllLobbies", lobbies);
         }
     }

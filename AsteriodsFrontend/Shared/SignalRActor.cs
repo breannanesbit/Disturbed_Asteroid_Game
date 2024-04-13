@@ -1,35 +1,85 @@
 ﻿using Actors.UserActors;
 using Akka.Actor;
-using Microsoft.AspNetCore.SignalR;
-using SignalRAPI.Hub;
+using Shared.SignalRService;
 
 namespace Actors
 {
     public class SignalRActor : ReceiveActor
     {
-        private IHubContext<ComunicationHub> _hubContext;
+        private readonly ActorSignalRService signalRService;
 
-        public SignalRActor(IHubContext<ComunicationHub> hubContext)
+        public SignalRActor(ActorSignalRService signalRService)
         {
-            _hubContext = hubContext;
+            this.signalRService = signalRService;
 
             Receive<GameLobby>(message =>
             {
+                signalRService.SendGameLobby(message).PipeTo(
+                    recipient: Self,
+                    success: () =>
+                    {
+                        Console.WriteLine("success");
+                        return "success";
+                    },
+                    failure: _ex =>
+                    {
+                        Console.WriteLine("failure");
+                        return new SignalRErrorMessage
+                        {
+                            Message = $"error: {_ex.Message}"
+                        };
+                    });
+
                 Console.WriteLine($"In signalR actor {message}");
-                Console.WriteLine($"hub connection: {_hubContext.Clients.All.ToString()}");
-                _hubContext.Clients.All.SendAsync("SendMessage", message);
+                Console.WriteLine($"made it after");
             });
 
             Receive<GameState>(message =>
             {
                 //will need to change this so only the players recieve the message for this lobby
-                _hubContext.Clients.All.SendAsync("StartGame", message);
+                signalRService.SendGameState(message).PipeTo(
+                    recipient: Self,
+                    success: () =>
+                    {
+                        Console.WriteLine("success");
+                        return "success";
+                    },
+                    failure: _ex =>
+                    {
+                        Console.WriteLine("failure");
+                        return new SignalRErrorMessage
+                        {
+                            Message = $"error: {_ex.Message}"
+                        };
+                    });
+                //_hubContext.Clients.All.SendAsync("StartGame", message);
             });
 
             Receive<AllLobbies>(message =>
             {
-                _hubContext.Clients.All.SendAsync("AllLobbiesSend", message);
+                signalRService.SendAllLobbies(message).PipeTo(
+                    recipient: Self,
+                    success: () =>
+                    {
+                        Console.WriteLine("success");
+                        return "success";
+                    },
+                    failure: _ex =>
+                    {
+                        Console.WriteLine("failure");
+                        return new SignalRErrorMessage
+                        {
+                            Message = $"error: {_ex.Message}"
+                        };
+                    });
+                //_hubContext.Clients.All.SendAsync("AllLobbiesSend", message);
             });
         }
+
+        public class SignalRErrorMessage
+        {
+            public string Message { get; set; }
+        }
+
     }
 }

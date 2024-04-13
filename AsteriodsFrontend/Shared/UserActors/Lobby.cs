@@ -19,7 +19,7 @@ namespace Actors.UserActors
             {
                 Console.WriteLine("made it to the lobby actor");
                 CurrentLobby.CurrentState = GameState.Joining;
-                CurrentLobby.HeadPlayer = new User() { Username = lobby.HeadPlayer };
+                CurrentLobby.HeadPlayer = lobby.HeadPlayer;
                 CurrentLobby.Players.Add(CurrentLobby.HeadPlayer);
 
                 TalkToGateway(lobby);
@@ -51,6 +51,27 @@ namespace Actors.UserActors
                     // Reply with the updated lobby state
                     Sender.Tell(CurrentLobby.Players.Count);
                 }
+            });
+
+            Receive<DecreaseUserHealth>(userHealth =>
+            {
+                var user = CurrentLobby.Players.Find(u => u.Username == userHealth.User.Username);
+                if (user != null)
+                {
+                    // Decrease the user's health
+                    user.Ship.Health -= userHealth.Damage;
+
+                    // If the user's health is zero or less, remove them from the lobby
+                    if (user.Ship.Health <= 0)
+                    {
+                        CurrentLobby.Players.Remove(user);
+                        if (CurrentLobby.Players.Count == 0)
+                        {
+                            CurrentLobby.CurrentState = GameState.Over;
+                        }
+                    }
+                }
+
             });
 
         }

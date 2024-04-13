@@ -63,7 +63,9 @@ namespace AstoridsTest
 
             var username = "TomRiddle";
 
-            var lobby = new Lobby { HeadPlayer = username, ActorRef = lobbyActor, Id = Guid.NewGuid() };
+            var user = new User() { Username = username };
+
+            var lobby = new Lobby { HeadPlayer = user, ActorRef = lobbyActor, Id = Guid.NewGuid() };
 
             lobbyActor.Tell(lobby);
             var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
@@ -83,7 +85,9 @@ namespace AstoridsTest
 
             var username = "TomRiddle";
 
-            var lobby = new Lobby { HeadPlayer = username, ActorRef = lobbyActor, Id = Guid.NewGuid() };
+            var user = new User() { Username = username };
+
+            var lobby = new Lobby { HeadPlayer = user, ActorRef = lobbyActor, Id = Guid.NewGuid() };
 
             lobbyActor.Tell(lobby);
             var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
@@ -129,12 +133,15 @@ namespace AstoridsTest
 
 
             var username = "TomRiddle";
-            var lobby = new Lobby { HeadPlayer = username, ActorRef = lobbyActor, Id = Guid.NewGuid() };
+
+            var user = new User() { Username = username };
+
+            var lobby = new Lobby { HeadPlayer = user, ActorRef = lobbyActor, Id = Guid.NewGuid() };
 
             lobbyActor.Tell(lobby);
             var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
 
-            var newuser = new AddUserToLobby { username = username, lobbyId = lobby.Id };
+            var newuser = new AddUserToLobby { username = "Test", lobbyId = lobby.Id };
             lobbyActor.Tell(newuser);
 
             var response2 = ExpectMsg<int>(TimeSpan.FromSeconds(5));
@@ -154,7 +161,9 @@ namespace AstoridsTest
 
 
             var username = "TomRiddle";
-            var lobby = new Lobby { HeadPlayer = username, ActorRef = lobbyActor, Id = Guid.NewGuid() };
+            var user = new User() { Username = username };
+
+            var lobby = new Lobby { HeadPlayer = user, ActorRef = lobbyActor, Id = Guid.NewGuid() };
 
             lobbyActor.Tell(lobby);
             var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));

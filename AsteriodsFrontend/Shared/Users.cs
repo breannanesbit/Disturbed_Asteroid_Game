@@ -14,7 +14,7 @@ namespace Actors.UserActors
     public class Lobby
     {
         public Guid Id { get; set; }
-        public string HeadPlayer { get; set; }
+        public User HeadPlayer { get; set; }
         public IActorRef ActorRef { get; set; }
         public List<User> Players { get; set; }
     }
@@ -32,12 +32,14 @@ namespace Actors.UserActors
     {
         public string Username { get; set; }
         public string Path { get; set; }
+        public string hubConnection { get; set; }
         public Ship Ship { get; set; }
     }
 
     public class NewLobbyObject
     {
         public string username { get; set; }
+        public string hubConnection { get; set; }
     }
 
     public class ChangeUserState
@@ -71,6 +73,11 @@ namespace Actors.UserActors
     }
 
 
+    public class DecreaseUserHealth
+    {
+        public User User { get; set; }
+        public int Damage { get; set; }
+    }
 
 
 }

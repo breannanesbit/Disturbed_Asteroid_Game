@@ -6,6 +6,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Grafana.Loki;
+using Shared.SignalRService;
 using System.Reflection;
 
 
@@ -15,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// builder.Services.AddSignalR();
+builder.Services.AddSignalR();
 
 
 builder.Services.AddOpenTelemetry()
@@ -54,6 +55,7 @@ builder.Host.UseSerilog((context, loggerConfig) =>
 //     return ActorSystem.Create("YourActorSystem", config);
 // });
 builder.Services.AddSingleton<IActorBridge, AkkaService>();
+builder.Services.AddSingleton<ActorSignalRService>();
 
 // // starts the IHostedService, which creates the ActorSystem and actors
 builder.Services.AddHostedService<AkkaService>(sp => (AkkaService)sp.GetRequiredService<IActorBridge>());

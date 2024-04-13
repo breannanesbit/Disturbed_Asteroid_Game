@@ -2,8 +2,7 @@ using Actors;
 using Actors.UserActors;
 using Akka.Actor;
 using Akka.DependencyInjection;
-using Microsoft.AspNetCore.SignalR;
-using SignalRAPI.Hub;
+using Shared.SignalRService;
 
 namespace Akka.AspNetCore
 {
@@ -11,16 +10,18 @@ namespace Akka.AspNetCore
     {
         private ActorSystem _actorSystem;
         private readonly IConfiguration _configuration;
+        private readonly ActorSignalRService signalRService;
         private readonly IServiceProvider _serviceProvider;
         private IActorRef _actorRef;
 
         private readonly IHostApplicationLifetime _applicationLifetime;
 
-        public AkkaService(IServiceProvider serviceProvider, IHostApplicationLifetime appLifetime, IConfiguration configuration)
+        public AkkaService(IServiceProvider serviceProvider, IHostApplicationLifetime appLifetime, IConfiguration configuration, ActorSignalRService signalRService)
         {
             _serviceProvider = serviceProvider;
             _applicationLifetime = appLifetime;
             _configuration = configuration;
+            this.signalRService = signalRService;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -35,9 +36,7 @@ namespace Akka.AspNetCore
             //var signalRProps = Props.Create(() => new SignalRActor(
             //GlobalHost.DependencyResolver.Resolve<IHubContext<ComunicationHub>>()));
 
-            var signalRProps = Props.Create(() => new SignalRActor(
-                _serviceProvider.GetRequiredService<IHubContext<ComunicationHub>>()));
-
+            var signalRProps = Props.Create(() => new SignalRActor(signalRService));
             var signalRActorRef = _actorSystem.ActorOf(signalRProps, "signalRActor");
 
             var lobbySupervisorProps = Props.Create(() => new LobbySupervisor(signalRActorRef));

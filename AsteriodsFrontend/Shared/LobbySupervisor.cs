@@ -15,12 +15,15 @@ namespace Actors.UserActors
 
             Receive<NewLobbyObject>(NewLobby =>
             {
-                var existingUser = Lobbies.Find(u => u.HeadPlayer == NewLobby.username);
+                var existingUser = Lobbies.Find(u => u.HeadPlayer.Username == NewLobby.username);
 
                 if (existingUser == null)
                 {
                     var newLobbyActor = Context.ActorOf(LobbyActor.Props());
-                    var lobby = new Lobby { HeadPlayer = NewLobby.username, ActorRef = newLobbyActor, Id = Guid.NewGuid() };
+
+                    var user = new User() { Username = NewLobby.username, hubConnection = NewLobby.hubConnection };
+
+                    var lobby = new Lobby { HeadPlayer = user, ActorRef = newLobbyActor, Id = Guid.NewGuid() };
                     Lobbies.Add(lobby);
                     newLobbyActor.Tell(lobby);
 
@@ -60,7 +63,11 @@ namespace Actors.UserActors
 
             Receive<AllLobbies>(lobbies =>
             {
-                SignalRActor.Tell(Lobbies);
+                var all = new AllLobbies()
+                {
+                    Lobbies = Lobbies,
+                };
+                SignalRActor.Tell(all);
                 Sender.Tell(Lobbies);
             });
         }

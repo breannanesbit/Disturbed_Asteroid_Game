@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Shared;
+﻿namespace Shared;
 
 public class Ship
 {
@@ -15,33 +9,34 @@ public class Ship
     public int BoundaryRight { get; } = 700;
     public int BoundaryBottom { get; } = 700;
     public int speed { get; } = 10;
+    public int Health { get; set; }
 
     public void moveForward()
     {
-        if(y-speed >= BoundaryTop)
+        if (y - speed >= BoundaryTop)
         {
-            y-= speed;
+            y -= speed;
         }
     }
     public void moveBackward()
     {
-        if(y+speed <= BoundaryBottom)
+        if (y + speed <= BoundaryBottom)
         {
-            y+= speed;
+            y += speed;
         }
     }
 
     public void moveRight()
     {
-        if(x+speed <= BoundaryRight)
+        if (x + speed <= BoundaryRight)
         {
-            x+= speed;
+            x += speed;
         }
     }
 
     public void moveLeft()
     {
-        if(x-speed >= BoundaryLeft)
+        if (x - speed >= BoundaryLeft)
         {
             x -= speed;
         }

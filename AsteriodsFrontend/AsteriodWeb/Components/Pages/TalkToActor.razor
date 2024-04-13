@@ -53,7 +53,9 @@
 
     private async Task CreateANewLobby()
     {
-        var nl = new NewLobbyObject() { username = key };
+        var hubc = hubConnection?.ConnectionId;
+        var nl = new NewLobbyObject() { username = key, hubConnection = hubc };
+
 
         var result = await akkaService.Ask<ChangeUserState>(nl);
         if(result != null)
@@ -74,11 +76,13 @@
             Console.WriteLine("made it");
             GotSingalRMessage = message;
             NavigationManager.NavigateTo($"/LobbyStartPage?lobby={GotSingalRMessage}");
+            StateHasChanged();
         });
 
-        hubConnection.On<List<Actors.UserActors.Lobby>>("GetAllLobbies", (lobbie) =>
+        hubConnection.On<AllLobbies>("GetAllLobbies", (lobbie) =>
         {
-            lobbies = lobbie;
+            lobbies = lobbie.Lobbies;
+            StateHasChanged();
         });
 
 
