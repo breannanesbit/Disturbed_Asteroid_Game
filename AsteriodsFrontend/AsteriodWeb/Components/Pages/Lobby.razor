@@ -1,25 +1,43 @@
 ﻿@page "/lobby"
-@*@using AsteriodsFrontend.Services
-@inject AkkaService akkaService *@
 @rendermode InteractiveServer
 <PageTitle>Lobby</PageTitle>
 
 <div class="row">
-    <p class="col col-5 ">State: Playing</p>
-    <button type="button" class="btn btn-danger col col-3" onclick="HandleEnd">End Game</button>
+    <p class="col col-5">State: @(state.isDead ? "Game Over": "Playing")</p>
+    <button type="button" class="btn btn-danger col col-3" @* @onclick="HandleEnd" *@>End Game</button>
 </div>
-<button type="button" class="btn btn-success" @onclick="HandleBoxClick">Test click</button>
-<div class="@boxClass"
-     style="height: 750px; width: 750px; position:relative;" @onkeydown="HandleKeyPress" @onclick="HandleBoxClick" tabindex="0">
+<br />
 
-    <img class="ship" style="position:absolute; left:@(state.x)px; top:@(state.y)px" src="images/ships/space-ship.svg" alt="ship" />
+<div class="@boxClass" style="height: 750px; width: 750px; position:relative;" @onkeydown="HandleKeyPress" @onclick="HandleBoxClick" tabindex="0">
+    @foreach(var lazer in lazers)
+    {
+        <img style="transform: rotate(@(lazer.Angle)deg); transform-origin: center;position:absolute; z-index: 1; left:@(lazer.x)px; top: @(lazer.y)px;" src="images/ships/lazer.svg" alt="lazer"/>
+    }
+    <div style="width:50px; z-index:0;  position:absolute; left:@(state.x - 21)px; top: @(state.y-10)px;" class=" col">
+        <div class="row text-center"aa>
+            <img class="ship" src="images/ships/space-ship.svg" alt="ship" style="transform: rotate(@(state.Angle)deg); transform-origin: center;" />
+        </div>
+        <div class="progress row" style="height:10px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: @(state.Health)%" aria-valuenow="@(state.Health)" aria-valuemin="0" aria-valuemax="100">
+            </div>
+        </div>
+    </div>
+    @* <p style="color:red;width:fit-content; position:relative; left:@(state.x)px; top:@(state.y)px;">.</p> *@
     @foreach (var asteroid in asteroids)
     {
-        <img class="asteroid" style="position:absolute; left:@(asteroid.X)px; top:@(asteroid.Y)px" src="../../images/Asteroids/@asteroid.ImagePath" alt="asteroid" />
+        <div style="width:65px; position:absolute; left:@(asteroid.X)px; top: @(asteroid.Y)px;" class=" col">
+            <div class="row text-center">
+                <img class="asteroid"  src="../../images/Asteroids/@asteroid.ImagePath" alt="asteroid" />
+            </div>
+            <div class="progress row" style="height:10px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: @(asteroid.Health)%" aria-valuenow="@(asteroid.Health)" aria-valuemin="0" aria-valuemax="100">
+                </div>
+            </div>
+        </div>
     }
 </div>
-@code {
 
+@code {
     private class ShipState
     {
         public int x { get; set; } = 0;
@@ -28,131 +46,315 @@
         public int BoundaryTop { get; } = 0;
         public int BoundaryRight { get; } = 700;
         public int BoundaryBottom { get; } = 700;
-    }
-    private class Asteroid
-    {
-        public int X { get; set; } = 0;
-        public int Y { get; set; } = 0;
         public int Health { get; set; } = 100;
-        public string ImagePath { get; set; } = "";
-        public int Speed { get; set; } = 5;
-        public bool Diagonal { get; set; }
+        public int Angle { get; set; } = 0;
+        public int HitBox { get; set; } = 25;
+        public bool isDead { get; set; } = false;
+
+        public void Damage()
+        {
+            Health -= 10;
+            if(Health <= 0)
+            {
+                Health = 0;
+                isDead = true;
+            }
+        }
+        public bool CheckBox(int x, int y)
+        {
+            return x >= this.x - 25 && x <= this.x + 25 && y >= this.y - 25 && y <= this.y + 25;
+        }
+    }
+
+    private class Lazer
+    {
+        public int x { get; set; } = 0;
+        public int y { get; set; } = 0;
         public int BoundaryLeft { get; } = 0;
         public int BoundaryTop { get; } = 0;
         public int BoundaryRight { get; } = 700;
         public int BoundaryBottom { get; } = 700;
+        public int Speed { get; } = 20;
+        //public int Health { get; set; } = 100;
+        public int Damage { get; } = 50;
+        public int Angle { get; set; } = 0;
+        private double radiansPerDegree = Math.PI / 180;
+
+        public bool Move()
+        {
+            double angleInRadians = Angle * radiansPerDegree;
+
+            int deltaX = (int)Math.Round(Speed * Math.Sin(angleInRadians));
+            int deltaY = (int)Math.Round(Speed * Math.Cos(angleInRadians));
+            x += deltaX;
+            y -= deltaY;
+
+            if (!CheckBoundaries())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public bool CheckBoundaries()
+        {
+            return x >= BoundaryLeft && x <= BoundaryRight && y <= BoundaryBottom && y >= BoundaryTop;
+        }
+    }
+
+    private class Asteroid
+    {
+        public int X { get; set; } = 0;
+        public int Y { get; set; } = 0;
+        public int spawnX { get; set; }= 0;
+        public int spawnY { get; set; } = 0;
+        public int Health { get; set; } = 100;
+        public string ImagePath { get; set; } = "";
+        public int Speed { get; set; } = 5;
+        //public bool Diagonal { get; set; }
+        public string Movement { get; set; } = "";
+        public int BoundaryLeft { get; } = 0;
+        public int BoundaryTop { get; } = 0;
+        public int BoundaryRight { get; } = 695;
+        public int BoundaryBottom { get; } = 695;
+        public int HitBox { get; set; } = 25;
+
+        public void Damage()
+        {
+            Health -= 10;
+        }
+        public bool CheckBox(int x, int y)
+        {
+            return x >= this.X - 25 && x <= this.X + 25 && y >= this.Y - 25 && y <= this.Y + 25;
+        }
+        public void Move()
+        {
+            switch(Movement)
+            {
+                case "Diagonal":
+                    MoveDiagonal();
+                    break;
+                case "Down":
+                    MoveDown();
+                    break;
+                case "Up":
+                    MoveUp();
+                    break;
+                case "Left":
+                    MoveLeft();
+                    break;
+                case "Right":
+                    MoveRight();
+                    break;
+            } 
+            if (!CheckBoundaries())
+            {
+                X = spawnX;
+                Y = spawnY;
+            }
+        }
+
 
         public void MoveDown()
         {
             Y += Speed;
             //if the asteroid goes in border it needs to disapear or bounce off.
         }
+
         public void MoveDiagonal()
         {
             X -= Speed;
             Y += Speed;
         }
+
         public void MoveUp()
         {
             Y -= Speed;
         }
+
         public void MoveLeft()
         {
             X -= Speed;
         }
+
         public void MoveRight()
         {
             X += Speed;
         }
+
         public bool CheckBoundaries()
         {
-            if (X >= BoundaryLeft && X <= BoundaryRight && Y <= BoundaryBottom && Y >= BoundaryTop)
-            {
-                return true;
-            }
-            else { return false; }
+            return X >= BoundaryLeft && X <= BoundaryRight && Y <= BoundaryBottom && Y >= BoundaryTop;
         }
     }
+
     private List<Asteroid> asteroids = new List<Asteroid>();
+    private List<Lazer> lazers = new List<Lazer>();
     private ShipState state = new ShipState();
     private bool isBoxClicked = false;
     private string boxClass => isBoxClicked ? "lobby-body border border-success" : "lobby-body border border-light";
     private Timer timer;
-    //private const int BoundaryLeft = 200;
-    //private const int BoundaryTop = 50;
+    private int TurnStep = 10;
+    private double radiansPerDegree = Math.PI / 180;
 
-    //move forward, left, right,
     protected override async Task OnInitializedAsync()
     {
         await InitializeAsteroids();
-        timer = new Timer(async (_) => await MoveAsteroids(), null, TimeSpan.Zero, TimeSpan.FromSeconds(0.001));
+        lazers.Add(new Lazer
+            {
+                x = state.x,
+                y = state.y,
+                Angle = state.Angle,
+            });
+        timer = new Timer(async (_) => 
+        {
+            await MoveAsteroids();
+            await MoveLazers();
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
     }
+
     private async Task InitializeAsteroids()
     {
         asteroids.Add(new Asteroid
             {
-                X = 50,
-                Y = 50,
+                X = 690,
+                spawnX = 690,
+                Y = 10,
+                spawnY = 10,
+                ImagePath = "asteroid-1.svg",
+                Movement = "Diagonal",
+            });
+        asteroids.Add(new Asteroid
+            {
+                X = 10,
+                spawnX = 10,
+                Y = 10,
+                spawnY = 10,
+                ImagePath = "asteroid-3.svg",
+                Movement = "Down",
+            });
+        asteroids.Add(new Asteroid
+            {
+                X = 650,
+                spawnX = 650,
+                Y = 690,
+                spawnY = 690,
                 ImagePath = "asteroid-2.svg",
-                Diagonal = true,
+                Movement = "Up",
+            });
+        asteroids.Add(new Asteroid
+            {
+                X = 10,
+                spawnX = 10,
+                Y = 290,
+                spawnY = 290,
+                ImagePath = "asteroid-2.svg",
+                Movement = "Right",
+            });
+        asteroids.Add(new Asteroid
+            {
+                X = 690,
+                spawnX = 690,
+                Y = 100,
+                spawnY = 100,
+                ImagePath = "asteroid-2.svg",
+                Movement = "Left",
             });
     }
+
     private async Task MoveAsteroids()
     {
         for (int i = asteroids.Count - 1; i >= 0; i--)
         {
             var asteroid = asteroids[i];
-            if (asteroid.Diagonal)
+            asteroid.Move();
+            if(asteroid.Health <= 0)
+            { asteroids.Remove(asteroid); }
+            if(state.CheckBox(asteroid.X, asteroid.Y))
             {
-                asteroid.MoveDiagonal();
-                if (!asteroid.CheckBoundaries())
-                {
-                    asteroids.RemoveAt(i);
-                }
+                state.Damage();
             }
         }
         await InvokeAsync(StateHasChanged);
     }
+    private async Task MoveLazers()
+    {
+        for (int i = lazers.Count - 1; i >= 0; i--)
+        {
+            var lazer = lazers[i];
+            var isNotOnBoard = lazer.Move();
+            if(isNotOnBoard)
+            {
+                lazers.Remove(lazer);
+            }
+            bool collisionDetected = false; 
+            for (int k = asteroids.Count - 1; k >= 0; k--)
+            {
+                var asteroid = asteroids[k];
+                if (asteroid.CheckBox(lazer.x, lazer.y))
+                {
+                    asteroid.Damage();
+                    collisionDetected = true; 
+                    break; 
+                }
+            }
+            if (collisionDetected)
+            {
+                lazers.Remove(lazer);
+            }
 
+        }
+        await InvokeAsync(StateHasChanged);
+    }
     public async Task HandleKeyPress(KeyboardEventArgs e)
     {
+        if(state.isDead)
+        {
+            return;
+        }
         var key = e.Key;
         const int step = 10;
+        double angleInRadians = state.Angle * radiansPerDegree;
+
         switch (key)
         {
             case "w":
-                //if(state.y - step >= state.BoundaryTop)
-                state.y -= step;
+                int deltaX = (int)Math.Round(step * Math.Sin(angleInRadians));
+                int deltaY = (int)Math.Round(step * Math.Cos(angleInRadians));
+                state.x += deltaX;
+                state.y -= deltaY;
                 break;
             case "s":
-                //if (state.y - step >= state.BoundaryBottom)
-                state.y += step;
+                int backwardDeltaX = -(int)Math.Round(step * Math.Sin(angleInRadians));
+                int backwardDeltaY = -(int)Math.Round(step * Math.Cos(angleInRadians));
+                state.x += backwardDeltaX;
+                state.y -= backwardDeltaY;
                 break;
             case "a":
-                //if(state.x - step >= state.BoundaryLeft)
-                state.x -= step;
+                state.Angle -= TurnStep;
                 break;
             case "d":
-                //if (state.x - step >= state.BoundaryRight)
-                state.x += step;
+                state.Angle += TurnStep;
+                break;
+            case "l":
+                if (lazers.Count < 7)
+                {
+                    lazers.Add(new Lazer
+                        {
+                            x = state.x,
+                            y = state.y,
+                            Angle = state.Angle,
+                        });
+                }
                 break;
         }
         StateHasChanged();
-        //await Task.CompletedTask;
     }
+
     private void HandleBoxClick()
     {
-        Console.WriteLine("The box is clicked:", isBoxClicked);
         isBoxClicked = true;
     }
-    /*private string responseMessage;
-    private string key;
-
-    private async Task SendToActor()
-        {
-        akkaService.Tell(key);
-        responseMessage = "";
-        var response = await akkaService.Ask<string>(key);
-        responseMessage = response;
-    }*/
 }
