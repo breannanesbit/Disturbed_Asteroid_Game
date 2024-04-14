@@ -1,10 +1,11 @@
 ﻿@page "/lobby"
+@using Shared
 @rendermode InteractiveServer
 <PageTitle>Lobby</PageTitle>
 
 <div class="row">
     <p class="col col-5">State: @(state.isDead ? "Game Over": "Playing")</p>
-    <button type="button" class="btn btn-danger col col-3" @* @onclick="HandleEnd" *@>End Game</button>
+    @* <button type="button" class="btn btn-danger col col-3" @* @onclick="HandleEnd" *@@* >End Game</button> *@
 </div>
 <br />
 
@@ -38,166 +39,12 @@
 </div>
 
 @code {
-    private class ShipState
-    {
-        public int x { get; set; } = 0;
-        public int y { get; set; } = 0;
-        public int BoundaryLeft { get; } = 0;
-        public int BoundaryTop { get; } = 0;
-        public int BoundaryRight { get; } = 700;
-        public int BoundaryBottom { get; } = 700;
-        public int Health { get; set; } = 100;
-        public int Angle { get; set; } = 0;
-        public int HitBox { get; set; } = 25;
-        public bool isDead { get; set; } = false;
-
-        public void Damage()
-        {
-            Health -= 10;
-            if(Health <= 0)
-            {
-                Health = 0;
-                isDead = true;
-            }
-        }
-        public bool CheckBox(int x, int y)
-        {
-            return x >= this.x - 25 && x <= this.x + 25 && y >= this.y - 25 && y <= this.y + 25;
-        }
-    }
-
-    private class Lazer
-    {
-        public int x { get; set; } = 0;
-        public int y { get; set; } = 0;
-        public int BoundaryLeft { get; } = 0;
-        public int BoundaryTop { get; } = 0;
-        public int BoundaryRight { get; } = 700;
-        public int BoundaryBottom { get; } = 700;
-        public int Speed { get; } = 20;
-        //public int Health { get; set; } = 100;
-        public int Damage { get; } = 50;
-        public int Angle { get; set; } = 0;
-        private double radiansPerDegree = Math.PI / 180;
-
-        public bool Move()
-        {
-            double angleInRadians = Angle * radiansPerDegree;
-
-            int deltaX = (int)Math.Round(Speed * Math.Sin(angleInRadians));
-            int deltaY = (int)Math.Round(Speed * Math.Cos(angleInRadians));
-            x += deltaX;
-            y -= deltaY;
-
-            if (!CheckBoundaries())
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public bool CheckBoundaries()
-        {
-            return x >= BoundaryLeft && x <= BoundaryRight && y <= BoundaryBottom && y >= BoundaryTop;
-        }
-    }
-
-    private class Asteroid
-    {
-        public int X { get; set; } = 0;
-        public int Y { get; set; } = 0;
-        public int spawnX { get; set; }= 0;
-        public int spawnY { get; set; } = 0;
-        public int Health { get; set; } = 100;
-        public string ImagePath { get; set; } = "";
-        public int Speed { get; set; } = 5;
-        //public bool Diagonal { get; set; }
-        public string Movement { get; set; } = "";
-        public int BoundaryLeft { get; } = 0;
-        public int BoundaryTop { get; } = 0;
-        public int BoundaryRight { get; } = 695;
-        public int BoundaryBottom { get; } = 695;
-        public int HitBox { get; set; } = 25;
-
-        public void Damage()
-        {
-            Health -= 10;
-        }
-        public bool CheckBox(int x, int y)
-        {
-            return x >= this.X - 25 && x <= this.X + 25 && y >= this.Y - 25 && y <= this.Y + 25;
-        }
-        public void Move()
-        {
-            switch(Movement)
-            {
-                case "Diagonal":
-                    MoveDiagonal();
-                    break;
-                case "Down":
-                    MoveDown();
-                    break;
-                case "Up":
-                    MoveUp();
-                    break;
-                case "Left":
-                    MoveLeft();
-                    break;
-                case "Right":
-                    MoveRight();
-                    break;
-            } 
-            if (!CheckBoundaries())
-            {
-                X = spawnX;
-                Y = spawnY;
-            }
-        }
-
-
-        public void MoveDown()
-        {
-            Y += Speed;
-            //if the asteroid goes in border it needs to disapear or bounce off.
-        }
-
-        public void MoveDiagonal()
-        {
-            X -= Speed;
-            Y += Speed;
-        }
-
-        public void MoveUp()
-        {
-            Y -= Speed;
-        }
-
-        public void MoveLeft()
-        {
-            X -= Speed;
-        }
-
-        public void MoveRight()
-        {
-            X += Speed;
-        }
-
-        public bool CheckBoundaries()
-        {
-            return X >= BoundaryLeft && X <= BoundaryRight && Y <= BoundaryBottom && Y >= BoundaryTop;
-        }
-    }
-
     private List<Asteroid> asteroids = new List<Asteroid>();
     private List<Lazer> lazers = new List<Lazer>();
-    private ShipState state = new ShipState();
+    private Ship state = new Ship();
     private bool isBoxClicked = false;
     private string boxClass => isBoxClicked ? "lobby-body border border-success" : "lobby-body border border-light";
     private Timer timer;
-    private int TurnStep = 10;
-    private double radiansPerDegree = Math.PI / 180;
 
     protected override async Task OnInitializedAsync()
     {
@@ -274,7 +121,7 @@
             { asteroids.Remove(asteroid); }
             if(state.CheckBox(asteroid.X, asteroid.Y))
             {
-                state.Damage();
+                state.Damage(10);
             }
         }
         await InvokeAsync(StateHasChanged);
@@ -312,31 +159,24 @@
     {
         if(state.isDead)
         {
+            StateHasChanged();
             return;
         }
         var key = e.Key;
-        const int step = 10;
-        double angleInRadians = state.Angle * radiansPerDegree;
 
         switch (key)
         {
             case "w":
-                int deltaX = (int)Math.Round(step * Math.Sin(angleInRadians));
-                int deltaY = (int)Math.Round(step * Math.Cos(angleInRadians));
-                state.x += deltaX;
-                state.y -= deltaY;
+                state.moveForward();
                 break;
             case "s":
-                int backwardDeltaX = -(int)Math.Round(step * Math.Sin(angleInRadians));
-                int backwardDeltaY = -(int)Math.Round(step * Math.Cos(angleInRadians));
-                state.x += backwardDeltaX;
-                state.y -= backwardDeltaY;
+                state.moveBackward();
                 break;
             case "a":
-                state.Angle -= TurnStep;
+                state.moveLeft();
                 break;
             case "d":
-                state.Angle += TurnStep;
+                state.moveRight();
                 break;
             case "l":
                 if (lazers.Count < 7)

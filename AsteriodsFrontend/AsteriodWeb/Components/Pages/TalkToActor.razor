@@ -81,6 +81,7 @@
 
         hubConnection.On<AllLobbies>("GetAllLobbies", (lobbie) =>
         {
+            Console.WriteLine("Client side");
             lobbies = lobbie.Lobbies;
             StateHasChanged();
         });
