@@ -17,15 +17,48 @@ services:
       dockerfile: AsteriodWeb/Dockerfile
     ports:
       - "4532:8080"
+    environment:
+      AKKA_CLUSTER: |
+       akka {
+          actor {
+            provider = cluster
+          }
+          remote {
+            dot-netty.tcp {
+              hostname = "asteriodclient"
+              port = 2551
+            }
+          }
+          cluster {
+            seed-nodes = ["akka.tcp://asteroids-actor-system@asteriodclient:2551"]
+            roles = ["userSession"]
+          }
+        }
     networks:
       - raft_network
 
 
   actors:
-    image: ${DOCKER_REGISTRY-}actors
     build:
       context: .
       dockerfile: Actor/Dockerfile
+    environment:
+      AKKA_CLUSTER: |
+       akka {
+          actor {
+            provider = cluster
+          }
+          remote {
+            dot-netty.tcp {
+              hostname = "actors"
+              port = 2551
+            }
+          }
+          cluster {
+            seed-nodes = ["akka.tcp://asteroids-actor-system@asteriodclient:2551"]
+            roles = ["lobby"]
+          }
+        }
 
   raftapi:
     build:

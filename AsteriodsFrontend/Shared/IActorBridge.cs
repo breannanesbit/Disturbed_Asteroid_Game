@@ -1,4 +1,4 @@
-namespace Akka.AspNetCore
+namespace Shared
 {
     public interface IActorBridge
     {

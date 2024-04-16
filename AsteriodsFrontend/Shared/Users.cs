@@ -33,7 +33,7 @@ namespace Actors.UserActors
         public string Username { get; set; }
         public string Path { get; set; }
         public string hubConnection { get; set; }
-        public Ship Ship { get; set; }
+        public Ship Ship { get; set; } = new();
     }
 
     public class NewLobbyObject
@@ -77,6 +77,7 @@ namespace Actors.UserActors
     {
         public User User { get; set; }
         public int Damage { get; set; }
+        public Guid LobbyId { get; set; }
     }
 
 

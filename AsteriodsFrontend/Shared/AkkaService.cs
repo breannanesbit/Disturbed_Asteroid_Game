@@ -1,10 +1,13 @@
 using Actors;
 using Actors.UserActors;
 using Akka.Actor;
+using Akka.Configuration;
 using Akka.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Shared.SignalRService;
 
-namespace Akka.AspNetCore
+namespace Shared
 {
     public class AkkaService : IHostedService, IActorBridge
     {
@@ -26,11 +29,18 @@ namespace Akka.AspNetCore
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var bootstrap = BootstrapSetup.Create();
             var diSetup = DependencyResolverSetup.Create(_serviceProvider);
+
+            var clusterEnv = Environment.GetEnvironmentVariable("AKKA_CLUSTER");
+            Console.WriteLine(clusterEnv);
+            var config = ConfigurationFactory.ParseString(clusterEnv);
+
+            var bootstrap = BootstrapSetup.Create().WithConfig(config);
             var actorSystemSetup = bootstrap.And(diSetup);
 
             _actorSystem = ActorSystem.Create("akka-universe", actorSystemSetup);
+
+            var cluster = Akka.Cluster.Cluster.Get(_actorSystem);
 
             // Create router actor instead of a single worker actor
             //var signalRProps = Props.Create(() => new SignalRActor(

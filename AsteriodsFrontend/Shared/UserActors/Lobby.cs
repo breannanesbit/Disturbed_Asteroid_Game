@@ -20,6 +20,7 @@ namespace Actors.UserActors
                 Console.WriteLine("made it to the lobby actor");
                 CurrentLobby.CurrentState = GameState.Joining;
                 CurrentLobby.HeadPlayer = lobby.HeadPlayer;
+                CurrentLobby.Id = lobby.Id;
                 CurrentLobby.Players.Add(CurrentLobby.HeadPlayer);
 
                 TalkToGateway(lobby);
@@ -70,6 +71,7 @@ namespace Actors.UserActors
                             CurrentLobby.CurrentState = GameState.Over;
                         }
                     }
+                    Sender.Tell(user.Ship.Health);
                 }
 
             });
