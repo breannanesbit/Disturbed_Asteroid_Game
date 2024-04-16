@@ -87,6 +87,7 @@ namespace Actors.UserActors
                 if (existingUser != null)
                 {
                     existingUser.ActorRef.Forward(duh);
+                    //existingUser.ActorRef.Tell(duh);
                 }
             });
         }

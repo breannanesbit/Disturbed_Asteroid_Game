@@ -21,7 +21,12 @@ namespace Actors.UserActors
                 CurrentLobby.CurrentState = GameState.Joining;
                 CurrentLobby.HeadPlayer = lobby.HeadPlayer;
                 CurrentLobby.Id = lobby.Id;
-                CurrentLobby.Players.Add(CurrentLobby.HeadPlayer);
+
+                var findUser = CurrentLobby.Players.Find(x => x.Username == lobby.HeadPlayer.Username && x.hubConnection == lobby.HeadPlayer.hubConnection);
+                if (findUser == null)
+                {
+                    CurrentLobby.Players.Add(CurrentLobby.HeadPlayer);
+                }
 
                 TalkToGateway(lobby);
                 Console.WriteLine($"Created a new state");
@@ -71,13 +76,12 @@ namespace Actors.UserActors
                             CurrentLobby.CurrentState = GameState.Over;
                         }
                     }
-                    Sender.Tell(user.Ship.Health);
+                    Sender.Tell(CurrentLobby);
                 }
 
             });
 
         }
-
 
 
         public void TalkToGateway(Lobby lobby)
