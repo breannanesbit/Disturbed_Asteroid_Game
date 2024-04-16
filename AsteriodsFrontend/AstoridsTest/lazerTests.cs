@@ -20,4 +20,13 @@ public class lazerTests : TestKit
         Assert.Equal(x, lazer.x);
         Assert.Equal(y, lazer.y);
     }
+    [Fact]
+    public void Lazer_move_out_of_bounds()
+    {
+        int x = 699;
+        int y = 1 - 20;
+        var lazer = new Lazer() { x = 100, y = 100, Angle = 0 };
+        lazer.Move();
+        Assert.True(lazer.CheckBoundaries());
+    }
 }

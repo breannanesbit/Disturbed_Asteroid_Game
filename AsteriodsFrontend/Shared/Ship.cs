@@ -18,6 +18,7 @@ public class Ship
     public int speed { get; } = 10;
     public int Health { get; set; } = 100;
     public int Angle { get; set; } = 0;
+    public int TurnStep { get; set; } = 10;
     public int HitBox { get; set; } = 25;
     public bool isDead { get; set; } = false;
     private double radiansPerDegree = Math.PI / 180;
@@ -36,45 +37,50 @@ public class Ship
     {
         return x >= this.x - 25 && x <= this.x + 25 && y >= this.y - 25 && y <= this.y + 25;
     }
+    public bool CheckBoundaries()
+    {
+        return x >= BoundaryLeft && x <= BoundaryRight && y <= BoundaryBottom && y >= BoundaryTop;
+    }
     public void moveForward()
     {
         double angleInRadians = Angle * radiansPerDegree;
-
-        if (y-speed >= BoundaryTop)
-        {
+        var originx = x;
+        var originy = y;
             int deltaX = (int)Math.Round(speed * Math.Sin(angleInRadians));
             int deltaY = (int)Math.Round(speed * Math.Cos(angleInRadians));
             x += deltaX;
             y -= deltaY;
-        }
+            if (!CheckBoundaries())
+            {
+                x = originx;
+                y = originy;
+            }
     }
     public void moveBackward()
     {
         double angleInRadians = Angle * radiansPerDegree;
-
-        if (y+speed <= BoundaryBottom)
-        {
+        var originx = x;
+        var originy = y;
             int backwardDeltaX = -(int)Math.Round(speed * Math.Sin(angleInRadians));
             int backwardDeltaY = -(int)Math.Round(speed * Math.Cos(angleInRadians));
             x += backwardDeltaX;
             y -= backwardDeltaY;
+        if (!CheckBoundaries())
+        {
+            x = originx;
+            y = originy;
         }
     }
 
     public void moveRight()
     {
-        if (x + speed <= BoundaryRight)
-        {
-            x += speed;
-        }
+        Angle += TurnStep;
     }
 
     public void moveLeft()
     {
-        if (x - speed >= BoundaryLeft)
-        {
-            x -= speed;
-        }
+        Angle -= TurnStep;
+
     }
 
 }
