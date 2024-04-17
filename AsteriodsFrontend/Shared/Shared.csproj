@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Akka" Version="1.5.18" />
+    <PackageReference Include="Akka.Cluster.Tools" Version="1.5.19" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="2.4.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="8.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />

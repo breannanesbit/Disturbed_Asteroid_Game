@@ -1,6 +1,7 @@
 using Actors;
 using Actors.UserActors;
 using Akka.Actor;
+using Akka.Cluster.Tools.Singleton;
 using Akka.Configuration;
 using Akka.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,9 @@ namespace Shared
         private readonly ActorSignalRService signalRService;
         private readonly IServiceProvider _serviceProvider;
         private IActorRef _actorRef;
+        private IActorRef userInstance;
+        private IActorRef lobbyInstance;
+
 
         private readonly IHostApplicationLifetime _applicationLifetime;
 
@@ -42,6 +46,28 @@ namespace Shared
 
             var cluster = Akka.Cluster.Cluster.Get(_actorSystem);
 
+            if (cluster.SelfRoles.Contains("userSession"))
+            {
+                var proxyProps = ClusterSingletonProxy.Props(
+                    singletonManagerPath: "user/lobbiesSingletonManager",
+                    settings: ClusterSingletonProxySettings.Create(_actorSystem));
+                var lobbySupervisorRef = _actorSystem.ActorOf(proxyProps, "lobbySupervisorProxy");
+
+                var apiActorProps = DependencyResolver.For(_actorSystem).Props<UserSupervisor>(lobbySupervisorRef);
+                userInstance = _actorSystem.ActorOf(apiActorProps, "userSupervisor");
+
+            }
+
+            if (cluster.SelfRoles.Contains("lobby"))
+            {
+                var lobbySupProps = DependencyResolver.For(_actorSystem).Props<LobbySupervisor>();
+                var singletonProps = ClusterSingletonManager.Props(
+                    singletonProps: lobbySupProps,
+                    terminationMessage: PoisonPill.Instance,
+                    settings: ClusterSingletonManagerSettings.Create(_actorSystem));
+                lobbyInstance = _actorSystem.ActorOf(singletonProps, "lobbiesSingletonManager");
+            }
+
             // Create router actor instead of a single worker actor
             //var signalRProps = Props.Create(() => new SignalRActor(
             //GlobalHost.DependencyResolver.Resolve<IHubContext<ComunicationHub>>()));
@@ -57,7 +83,7 @@ namespace Shared
             var newUserSupervisor = _actorSystem.ActorOf(userSupervisorProps);
 
             // Create the HeadSupervisor actor with a reference to the SignalR actor
-            var headSupervisorProps = Props.Create(() => new HeadSupervisor(newUserSupervisor, newLobbySupervisor));
+            var headSupervisorProps = Props.Create(() => new HeadSupervisor(userInstance, lobbyInstance));
             _actorRef = _actorSystem.ActorOf(headSupervisorProps, "router");
 
 
