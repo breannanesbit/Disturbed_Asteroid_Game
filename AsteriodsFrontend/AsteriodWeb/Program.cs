@@ -1,4 +1,3 @@
-using Akka.AspNetCore;
 using AsteriodWeb.Components;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -6,6 +5,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Grafana.Loki;
+using Shared;
 using Shared.SignalRService;
 using System.Reflection;
 

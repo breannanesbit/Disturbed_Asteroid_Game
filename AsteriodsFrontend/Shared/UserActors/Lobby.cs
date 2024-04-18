@@ -20,7 +20,13 @@ namespace Actors.UserActors
                 Console.WriteLine("made it to the lobby actor");
                 CurrentLobby.CurrentState = GameState.Joining;
                 CurrentLobby.HeadPlayer = lobby.HeadPlayer;
-                CurrentLobby.Players.Add(CurrentLobby.HeadPlayer);
+                CurrentLobby.Id = lobby.Id;
+
+                var findUser = CurrentLobby.Players.Find(x => x.Username == lobby.HeadPlayer.Username && x.hubConnection == lobby.HeadPlayer.hubConnection);
+                if (findUser == null)
+                {
+                    CurrentLobby.Players.Add(CurrentLobby.HeadPlayer);
+                }
 
                 TalkToGateway(lobby);
                 Console.WriteLine($"Created a new state");
@@ -70,12 +76,12 @@ namespace Actors.UserActors
                             CurrentLobby.CurrentState = GameState.Over;
                         }
                     }
+                    Sender.Tell(CurrentLobby);
                 }
 
             });
 
         }
-
 
 
         public void TalkToGateway(Lobby lobby)

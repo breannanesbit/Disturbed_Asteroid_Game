@@ -156,9 +156,7 @@ namespace AstoridsTest
             var probe = CreateTestProbe();
             using var system = ActorSystem.Create("MyTestSystem");
 
-
             var lobbyActor = system.ActorOf(Props.Create<LobbyActor>(), "SignalRActor");
-
 
             var username = "TomRiddle";
             var user = new User() { Username = username };
@@ -244,6 +242,129 @@ namespace AstoridsTest
             var response = ExpectMsg<List<Lobby>>(TimeSpan.FromSeconds(5));
             Assert.Equal(response.Count(), 3);
 
+        }
+
+        [Fact]
+        public void TestUserCanTakeDamageForSupervisor()
+        {
+            using var system = ActorSystem.Create("MySystem");
+
+            var signalRActor = system.ActorOf(Props.Create<SignalRActor>(), "SignalRActor");
+            var newLobbySupervisor = system.ActorOf(Props.Create<LobbySupervisor>(signalRActor), "NewLobbySupervisor");
+
+            var username = "TomRiddle";
+
+            var user = new User() { Username = username };
+
+            var newlobby = new NewLobbyObject { username = username, hubConnection = "hubConnection" };
+
+            newLobbySupervisor.Tell(newlobby);
+
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var duh = new DecreaseUserHealth()
+            {
+                LobbyId = response.Id,
+                User = user,
+                Damage = 10,
+            };
+
+            newLobbySupervisor.Tell(duh);
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(response2?.HeadPlayer.Ship.Health, 90);
+
+        }
+
+        [Fact]
+        public void TestUsersCanTakeDamage()
+        {
+
+            using var system = ActorSystem.Create("MyTestSystem1");
+
+            var lobbyActor = system.ActorOf(Props.Create<LobbyActor>(), "SignalRActor");
+
+            var username = "TomRiddle";
+            var user = new User() { Username = username };
+
+            var lobby = new Lobby { HeadPlayer = user, ActorRef = lobbyActor, Id = Guid.NewGuid() };
+
+            lobbyActor.Tell(lobby);
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var duh = new DecreaseUserHealth()
+            {
+                LobbyId = response.Id,
+                User = user,
+                Damage = 10,
+            };
+
+            lobbyActor.Tell(duh);
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(response2?.HeadPlayer.Ship.Health, 90);
+        }
+
+        [Fact]
+        public void TestGameOver()
+        {
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var lobbyActor = system.ActorOf(Props.Create<LobbyActor>(), "SignalRActor");
+
+            var username = "TomRiddle";
+            var user = new User() { Username = username };
+
+            var lobby = new Lobby { HeadPlayer = user, ActorRef = lobbyActor, Id = Guid.NewGuid() };
+
+            lobbyActor.Tell(lobby);
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var duh = new DecreaseUserHealth()
+            {
+                LobbyId = response.Id,
+                User = user,
+                Damage = 100,
+            };
+
+            lobbyActor.Tell(duh);
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(response2.HeadPlayer.Ship.Health, 0);
+            Assert.Equal(response2.CurrentState, GameState.Over);
+
+        }
+
+        [Fact]
+        public void TestGameOverFromTheSupervisor()
+        {
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var signalRActor = system.ActorOf(Props.Create<SignalRActor>(), "SignalRActor");
+            var newLobbySupervisor = system.ActorOf(Props.Create<LobbySupervisor>(signalRActor), "NewLobbySupervisor");
+
+            var username = "TomRiddle";
+
+            var user = new User() { Username = username };
+
+            var newlobby = new NewLobbyObject { username = username, hubConnection = "hubConnection" };
+
+            newLobbySupervisor.Tell(newlobby);
+
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var duh = new DecreaseUserHealth()
+            {
+                LobbyId = response.Id,
+                User = user,
+                Damage = 100,
+            };
+
+            newLobbySupervisor.Tell(duh);
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(response2?.HeadPlayer.Ship.Health, 0);
+            Assert.Equal(response2.CurrentState, GameState.Over);
         }
     }
 }
