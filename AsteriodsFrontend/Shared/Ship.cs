@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Shared;
 
@@ -22,6 +23,8 @@ public class Ship
     public int HitBox { get; set; } = 25;
     public bool isDead { get; set; } = false;
     private double radiansPerDegree = Math.PI / 180;
+    public string ShipColor { get; set; } = "white";
+    public int ShipImage { get; set; } = 0;
 
 
     public void Damage(int hit)

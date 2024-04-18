@@ -6,6 +6,14 @@ body {
     background: #212121;
     color: white;
 }
+
+.ship-color-box {
+    height: 40px;
+    width: 40px;
+    display: inline-block;
+    margin-right: 5px;
+    cursor: pointer;
+}
 /*.clicked {
     border: solid 1px #0dae33;
 }*/

@@ -8,51 +8,142 @@
 @inject IActorBridge akkaService
 
 
-<h3>Lobby: @Lobby1.Id</h3>
-<button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button>
+@* <h3>Lobby: @Lobby1.Id</h3>
+<button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button> *@
+<h3>Lobby: 2</h3>
+<div class="row">
+    <div class="col">
+        <h5 class="text-decoration-underline">Players</h5>
+        <ul>
+            @foreach (var player in Players)
+            {
+                <li>@player.UserName: 
+                <AsteriodWeb.Components.Ships.ShipDisplay Color="@player.SpaceShip.ShipColor" ShipNumber="@player.SpaceShip.ShipImage" />
+                </li>
 
+            }
+        </ul>
+    </div>
+    <div class="col">
+        <h4>Select Ship Color:</h4>
+        <div class="d-flex pb-3">
+            @foreach (var color in ShipColors)
+            {
+                <div class="ship-color-box border"
+                     style="background-color: @color.Item2;"
+                     @onclick="() => ColorSelected(color.Item1)"
+                     title="Select @color.Item1">
+                </div>
+            }
+        </div>
+        <div class="row">
+            @for(int i = 0; i < 4; i++)
+            {
+                int s = i;
+                <div class="col" id="@($"ship-{i}")" @onclick="() => ShipClicked(s)">
+                    <AsteriodWeb.Components.Ships.ShipDisplay Color="@SelectedColor" ShipNumber="@i"/>
+                </div>
+                
+            }
+        </div>
+    </div>
+</div>
 
 @code {
-    [Parameter]
-    public GameLobby Lobby1 { get; set; }
-    private HubConnection? hubConnection;
-
-
-    protected override async Task OnInitializedAsync()
+    private List<(string, string)> ShipColors = new List<(string, string)>
     {
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl("http://signalrapi:8000/ComunicationHub")
-            //.WithUrl("http://localhost:32772/ComunicationHub")
-            .Build();
+        ("red", "#e60000"),
+        ("blue", "#0099ff"),
+        ("green", "#2eb82e"),
+        ("yellow", "#ffcc00"),
+        ("orange", "#ff9900"),
+        ("white", "#ffffff"),
+        ("teal", "#33cccc")
+    };
 
-        hubConnection.On<GameState>("GameStarted", (message) =>
+    private string SelectedColor { get; set; }
+
+    private void ColorSelected(string color)
+    {
+        Console.WriteLine("color selected", color);
+        var currentPlayer = Players.FirstOrDefault(p => p.UserName == "Player 1");
+
+        if (currentPlayer != null)
         {
-            if(message == GameState.Playing)
-            {
-                //navigate to the lobby game page
-            }
-
-        });
-
-        await hubConnection.StartAsync();
-    }
-
-    // Dispose the hub connection when component is disposed
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection != null)
-            await hubConnection.DisposeAsync();
-    }
-
-    private async Task ChangeGameState()
-    {
-       var cgs = new ChangeGameState
-            {
-                user = Lobby1.HeadPlayer.Username,
-                lobbyId = Lobby1.Id,
-                lobbyState = GameState.Playing
-            };
-        var result = await akkaService.Ask<ChangeGameState>(cgs);
-    
+            currentPlayer.SpaceShip.ShipColor = color;
+            SelectedColor = color;
+            StateHasChanged();
+            //currentPlayer.SpaceShip.color = color;
         }
+    }
+    private void ShipClicked(int image)
+    {
+        Console.WriteLine("selected image:",image);
+        var currentPlayer = Players.FirstOrDefault(p => p.UserName == "Player 1");
+        if(currentPlayer != null)
+        {
+            currentPlayer.SpaceShip.ShipImage = image;
+            StateHasChanged();
+        }
+    }
+    public class User
+    {
+        public string UserName { get; set; }
+        public Ship SpaceShip { get; set; }
+    }
+
+    private List<User> Players = new List<User>()
+    {
+      new User { UserName = "Player 1", SpaceShip = new Ship()},
+      new User { UserName = "Player 2", SpaceShip = new Ship()},
+      new User { UserName = "Player 3", SpaceShip = new Ship()},
+      new User { UserName = "Player 4", SpaceShip = new Ship()},
+
+    }
+
+    ;
+
+     /* [Parameter]
+     public GameLobby Lobby1 { get; set; }
+     private HubConnection? hubConnection;
+
+
+     protected override async Task OnInitializedAsync()
+         {
+         hubConnection = new HubConnectionBuilder()
+             .WithUrl("http://signalrapi:8000/ComunicationHub")
+             //.WithUrl("http://localhost:32772/ComunicationHub")
+         .Build();
+
+         hubConnection.On<GameState>("GameStarted", (message) =>
+             {
+             if(message == GameState.Playing)
+                 {
+                 //navigate to the lobby game page
+         }
+
+         });
+
+         await hubConnection.StartAsync();
+     }
+
+     // Dispose the hub connection when component is disposed
+     public async ValueTask DisposeAsync()
+         {
+         if (hubConnection != null)
+             await hubConnection.DisposeAsync();
+     }
+
+     private async Task ChangeGameState()
+        {
+        var cgs = new ChangeGameState
+                 {
+                 user = Lobby1.HeadPlayer.Username,
+                 lobbyId = Lobby1.Id,
+                 lobbyState = GameState.Playing
+         };
+         var result = await akkaService.Ask<ChangeGameState>(cgs);
+
+    }*/
 }
+
