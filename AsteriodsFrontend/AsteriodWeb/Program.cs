@@ -5,6 +5,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Grafana.Loki;
+using Serilog.Sinks.Loki;
 using Shared;
 using Shared.SignalRService;
 using System.Reflection;
@@ -43,6 +44,7 @@ builder.Host.UseSerilog((context, loggerConfig) =>
         .Enrich.WithProperty("job", "your-api-job")
         .Enrich.WithExceptionDetails()
         .WriteTo.Console()
+        .WriteTo.LokiHttp("http://loki:3100")
         .WriteTo.GrafanaLoki("http://loki:3100");
 });
 

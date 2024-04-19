@@ -156,10 +156,10 @@ services:
     container_name: loki
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      # - ./loki:/etc/loki
-      - ./ops/loki1.yml:/etc/grafana/provisioning/datasources/loki.yml
+    # command: -config.file=/etc/loki/local-config.yaml
+    # volumes:
+    #   # - ./loki:/etc/loki
+    #   - ./ops/loki1.yml:/etc/grafana/provisioning/datasources/loki.yml
     networks:
       - raft_network
 
@@ -178,13 +178,19 @@ services:
     networks:
       - raft_network
 
+  # otel-collector:
+  #   image: otel/opentelemetry-collector
+  #   container_name: otel-collector
+  #   ports:
+  #     - "4317:4317"
+  #   volumes:
+  #     - ./ops/collector-config.yaml:/etc/otel-collector/config.yaml
   otel-collector:
     image: otel/opentelemetry-collector
-    container_name: otel-collector
-    ports:
-      - "4317:4317"
     volumes:
-      - ./ops/collector-config.yaml:/etc/otel-collector/config.yaml
+      - ./ops/collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config", "/etc/otel-collector-config.yaml"]
+
     networks:
       - raft_network
 
@@ -198,5 +204,4 @@ services:
 
 networks:
   raft_network:
-  monitoring:
   

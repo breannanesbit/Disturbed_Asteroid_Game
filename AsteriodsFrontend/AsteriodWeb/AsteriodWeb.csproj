@@ -25,6 +25,8 @@
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.2-dev-00338" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
+	  <PackageReference Include="Serilog.Sinks.Loki" Version="3.0.0" />
+
   </ItemGroup>
 
   <ItemGroup>
