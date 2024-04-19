@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.ResponseCompression;
-using SignalRAPI.Hub;
+using SignalRAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 

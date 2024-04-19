@@ -93,7 +93,7 @@
         Console.WriteLine("Before start up");
 
         await hubConnection.StartAsync();
-        Console.WriteLine("Connection made it");
+        Console.WriteLine($"Connection Id : {hubConnection.ConnectionId}");
         Logger.LogInformation("Connection made it");
 
         var getlobbies = new AllLobbies();
