@@ -10,8 +10,8 @@ services:
     networks:
       - raft_network
   
-  asteriodclient:
-    image: ${DOCKER_REGISTRY-}asteriodclient
+  asteriodclient1:
+    image: ${DOCKER_REGISTRY-}asteriodclient1
     build:
       context: .
       dockerfile: AsteriodWeb/Dockerfile
@@ -37,6 +37,32 @@ services:
     networks:
       - raft_network
 
+  asteriodclient2:
+    image: ${DOCKER_REGISTRY-}asteriodclient2
+    build:
+      context: .
+      dockerfile: AsteriodWeb/Dockerfile
+    ports:
+      - "4533:8080"
+    environment:
+      AKKA_CLUSTER: |
+       akka {
+          actor {
+            provider = cluster
+          }
+          remote {
+            dot-netty.tcp {
+              hostname = "asteriodclient"
+              port = 2551
+            }
+          }
+          cluster {
+            seed-nodes = ["akka.tcp://asteroids-actor-system@asteriodclient:2551"]
+            roles = ["userSession"]
+          }
+        }
+    networks:
+      - raft_network
 
   actors:
     build:
@@ -59,6 +85,8 @@ services:
             roles = ["lobby"]
           }
         }
+    networks:
+      - raft_network
 
   raftapi:
     build:
@@ -123,7 +151,7 @@ services:
       # - ./prometheus:/etc/prometheus
       - ./ops/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
     networks:
-      - monitoring
+      - raft_network
 
   loki:
     image: grafana/loki:latest
@@ -133,9 +161,9 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       # - ./loki:/etc/loki
-      - ./ops/loki.yml:/etc/grafana/provisioning/datasources/loki.yml
+      - ./ops/loki1.yml:/etc/grafana/provisioning/datasources/loki.yml
     networks:
-      - monitoring
+      - raft_network
 
   grafana:
     image: grafana/grafana
@@ -144,11 +172,13 @@ services:
       - "3000:3000"
     volumes:
       - ./provisioning:/etc/grafana/provisioning
+      - ./ops/loki1.yml:/etc/grafana/provisioning/datasources/ds.yaml
+      - ./ops/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yaml
     depends_on:
       - loki
       - prometheus
     networks:
-      - monitoring
+      - raft_network
 
   otel-collector:
     image: otel/opentelemetry-collector
@@ -158,7 +188,7 @@ services:
     volumes:
       - ./ops/collector-config.yaml:/etc/otel-collector/config.yaml
     networks:
-      - monitoring
+      - raft_network
 
   zipkin:
     image: openzipkin/zipkin
@@ -166,7 +196,7 @@ services:
     ports:
       - "9411:9411"
     networks:
-      - monitoring
+      - raft_network
 
 networks:
   raft_network:

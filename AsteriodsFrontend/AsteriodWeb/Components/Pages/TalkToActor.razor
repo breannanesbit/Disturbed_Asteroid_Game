@@ -6,6 +6,8 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
+@inject ILogger<TalkToActor> Logger // Inject ILogger here
+
 
 <h3>Enter Username and then can be added to a Lobby</h3>
 
@@ -72,7 +74,8 @@
 
         hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
         {
-            Console.WriteLine("made it");
+
+            Logger.LogInformation("Made it to receive gamelobby object");
             GotSingalRMessage = message;
             NavigationManager.NavigateTo($"/LobbyStartPage?lobby={GotSingalRMessage}");
             StateHasChanged();
@@ -81,6 +84,7 @@
         hubConnection.On<AllLobbies>("GetAllLobbies", (lobbie) =>
         {
             Console.WriteLine("Client side");
+            Logger.LogInformation("Got all lobbies");
             lobbies = lobbie.Lobbies;
             StateHasChanged();
         });
@@ -90,6 +94,7 @@
 
         await hubConnection.StartAsync();
         Console.WriteLine("Connection made it");
+        Logger.LogInformation("Connection made it");
 
         var getlobbies = new AllLobbies();
 

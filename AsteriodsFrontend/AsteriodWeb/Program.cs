@@ -39,13 +39,11 @@ builder.Services.AddOpenTelemetry()
 
 builder.Host.UseSerilog((context, loggerConfig) =>
 {
-    loggerConfig.WriteTo.Console()
-    .Enrich.WithProperty("job", "your-api-job")
-    .Enrich.WithExceptionDetails()
-    .WriteTo.GrafanaLoki("http://loki:3100");
-
-
-    /*.WriteTo.Sink(new GrafanaLokiSink("http://loki:3100"));*/
+    loggerConfig.Enrich.FromLogContext()
+        .Enrich.WithProperty("job", "your-api-job")
+        .Enrich.WithExceptionDetails()
+        .WriteTo.Console()
+        .WriteTo.GrafanaLoki("http://loki:3100");
 });
 
 
