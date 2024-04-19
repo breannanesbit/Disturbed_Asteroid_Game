@@ -16,6 +16,7 @@ public class UserSupervisor : ReceiveActor
 
         Receive<User>(user =>
         {
+            Console.WriteLine("made it the user sup to add user");
             // Check if a UserActor already exists for the given username
             var existingUser = UserActors.Find(u => u.Username == user.Username);
 
