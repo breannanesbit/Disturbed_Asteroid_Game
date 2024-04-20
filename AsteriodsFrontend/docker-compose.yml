@@ -36,31 +36,31 @@ services:
     networks:
       - raft_network
 
-  # asteriodclient2:
-  #   build:
-  #     context: .
-  #     dockerfile: AsteriodWeb/Dockerfile
-  #   ports:
-  #     - "4533:8080"
-  #   environment:
-  #     AKKA_CLUSTER: |
-  #      akka {
-  #         actor {
-  #           provider = cluster
-  #         }
-  #         remote {
-  #           dot-netty.tcp {
-  #             hostname = "asteriodclient2"
-  #             port = 2551
-  #           }
-  #         }
-  #         cluster {
-  #           seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
-  #           roles = ["userSession"]
-  #         }
-  #       }
-  #   networks:
-  #     - raft_network
+  asteriodclient2:
+     build:
+       context: .
+       dockerfile: AsteriodWeb/Dockerfile
+     ports:
+       - "4533:8080"
+     environment:
+       AKKA_CLUSTER: |
+        akka {
+           actor {
+             provider = cluster
+           }
+           remote {
+             dot-netty.tcp {
+               hostname = "asteriodclient2"
+               port = 2551
+             }
+           }
+           cluster {
+             seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
+             roles = ["userSession"]
+           }
+         }
+     networks:
+       - raft_network
 
   actors:
     build:
