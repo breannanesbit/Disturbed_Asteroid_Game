@@ -1,6 +1,7 @@
 using Actors;
 using Actors.UserActors;
 using Akka.Actor;
+using Akka.Cluster.Tools.Singleton;
 using Akka.Configuration;
 using Akka.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -45,45 +46,54 @@ namespace Shared
 
             var cluster = Akka.Cluster.Cluster.Get(_actorSystem);
 
-            //if (cluster.SelfRoles.Contains("userSession"))
-            //{
-            //    var proxyProps = ClusterSingletonProxy.Props(
-            //        singletonManagerPath: "user/lobbiesSingletonManager",
-            //        settings: ClusterSingletonProxySettings.Create(_actorSystem));
-            //    var lobbySupervisorRef = _actorSystem.ActorOf(proxyProps, "lobbySupervisorProxy");
-
-            //    var apiActorProps = DependencyResolver.For(_actorSystem).Props<UserSupervisor>(lobbySupervisorRef);
-            //    userInstance = _actorSystem.ActorOf(apiActorProps, "userSupervisor");
-
-            //}
-
-            //if (cluster.SelfRoles.Contains("lobby"))
-            //{
-            //    var lobbySupProps = DependencyResolver.For(_actorSystem).Props<LobbySupervisor>();
-            //    var singletonProps = ClusterSingletonManager.Props(
-            //        singletonProps: lobbySupProps,
-            //        terminationMessage: PoisonPill.Instance,
-            //        settings: ClusterSingletonManagerSettings.Create(_actorSystem));
-            //    lobbyInstance = _actorSystem.ActorOf(singletonProps, "lobbiesSingletonManager");
-            //}
-
-            // Create router actor instead of a single worker actor
-            //var signalRProps = Props.Create(() => new SignalRActor(
-            //GlobalHost.DependencyResolver.Resolve<IHubContext<ComunicationHub>>()));
-
             var signalRProps = Props.Create(() => new SignalRActor(signalRService));
             var signalRActorRef = _actorSystem.ActorOf(signalRProps, "signalRActor");
 
-            var lobbySupervisorProps = Props.Create(() => new LobbySupervisor(signalRActorRef));
-            var newLobbySupervisor = _actorSystem.ActorOf(lobbySupervisorProps);
+            if (cluster.SelfRoles.Contains("lobby"))
+            {
 
-            // Create the UserSupervisor actor with a reference to the SignalR actor
-            var userSupervisorProps = Props.Create(() => new UserSupervisor(signalRActorRef, newLobbySupervisor));
-            var newUserSupervisor = _actorSystem.ActorOf(userSupervisorProps);
+                var lobbySupProps = DependencyResolver.For(_actorSystem).Props<LobbySupervisor>(signalRActorRef);
+                var singletonProps = ClusterSingletonManager.Props(
+                    singletonProps: lobbySupProps,
+                    terminationMessage: PoisonPill.Instance,
+                    settings: ClusterSingletonManagerSettings.Create(_actorSystem).WithRole("lobby"));
+                lobbyInstance = _actorSystem.ActorOf(singletonProps, "lobbiesSingletonManager");
+            }
+
+            var proxyProps = ClusterSingletonProxy.Props(
+                    singletonManagerPath: "user/lobbiesSingletonManager",
+                    settings: ClusterSingletonProxySettings.Create(_actorSystem).WithRole("lobby"));
+            var lobbySupervisorRef = _actorSystem.ActorOf(proxyProps, "lobbySupervisorProxy");
+
+
+            if (cluster.SelfRoles.Contains("userSession"))
+            {
+                var userSupProps = DependencyResolver.For(_actorSystem).Props<UserSupervisor>(signalRActorRef, lobbySupervisorRef);
+                var userSingletionProps = ClusterSingletonManager.Props(
+                    singletonProps: userSupProps,
+                    terminationMessage: PoisonPill.Instance,
+                    settings: ClusterSingletonManagerSettings.Create(_actorSystem).WithRole("userSession")
+                    );
+                userInstance = _actorSystem.ActorOf(userSingletionProps, "userSingletonManager");
+
+            }
+
+            var userproxyProps = ClusterSingletonProxy.Props(
+                    singletonManagerPath: "user/userSingletonManager",
+                    settings: ClusterSingletonProxySettings.Create(_actorSystem).WithRole("userSession"));
+            var UserSupervisorRef = _actorSystem.ActorOf(userproxyProps, "userSupervisorProxy");
+
+            var headSupervisorProps = Props.Create(() => new HeadSupervisor(UserSupervisorRef, lobbySupervisorRef));
+            _actorRef = _actorSystem.ActorOf(headSupervisorProps, "router");
+
+            //var lobbySupervisorProps = Props.Create(() => new LobbySupervisor(signalRActorRef));
+            //var newLobbySupervisor = _actorSystem.ActorOf(lobbySupervisorProps);
+
+            //// Create the UserSupervisor actor with a reference to the SignalR actor
+            //var userSupervisorProps = Props.Create(() => new UserSupervisor(signalRActorRef, newLobbySupervisor));
+            //var newUserSupervisor = _actorSystem.ActorOf(userSupervisorProps);
 
             // Create the HeadSupervisor actor with a reference to the SignalR actor
-            var headSupervisorProps = Props.Create(() => new HeadSupervisor(newUserSupervisor, newLobbySupervisor));
-            _actorRef = _actorSystem.ActorOf(headSupervisorProps, "router");
 
 
             _actorSystem.WhenTerminated.ContinueWith(_ =>

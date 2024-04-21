@@ -11,7 +11,6 @@ services:
       - raft_network
   
   asteriodclient1:
-    image: ${DOCKER_REGISTRY-}asteriodclient1
     build:
       context: .
       dockerfile: AsteriodWeb/Dockerfile
@@ -25,12 +24,12 @@ services:
           }
           remote {
             dot-netty.tcp {
-              hostname = "asteriodclient"
+              hostname = "asteriodclient1"
               port = 2551
             }
           }
           cluster {
-            seed-nodes = ["akka.tcp://asteroids-actor-system@asteriodclient:2551"]
+            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
             roles = ["userSession"]
           }
         }
@@ -38,31 +37,30 @@ services:
       - raft_network
 
   asteriodclient2:
-    image: ${DOCKER_REGISTRY-}asteriodclient2
-    build:
-      context: .
-      dockerfile: AsteriodWeb/Dockerfile
-    ports:
-      - "4533:8080"
-    environment:
-      AKKA_CLUSTER: |
-       akka {
-          actor {
-            provider = cluster
-          }
-          remote {
-            dot-netty.tcp {
-              hostname = "asteriodclient"
-              port = 2551
-            }
-          }
-          cluster {
-            seed-nodes = ["akka.tcp://asteroids-actor-system@asteriodclient:2551"]
-            roles = ["userSession"]
-          }
-        }
-    networks:
-      - raft_network
+     build:
+       context: .
+       dockerfile: AsteriodWeb/Dockerfile
+     ports:
+       - "4533:8080"
+     environment:
+       AKKA_CLUSTER: |
+        akka {
+           actor {
+             provider = cluster
+           }
+           remote {
+             dot-netty.tcp {
+               hostname = "asteriodclient2"
+               port = 2551
+             }
+           }
+           cluster {
+             seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
+             roles = ["userSession"]
+           }
+         }
+     networks:
+       - raft_network
 
   actors:
     build:
@@ -81,7 +79,7 @@ services:
             }
           }
           cluster {
-            seed-nodes = ["akka.tcp://asteroids-actor-system@asteriodclient:2551"]
+            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
             roles = ["lobby"]
           }
         }
@@ -158,10 +156,10 @@ services:
     container_name: loki
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      # - ./loki:/etc/loki
-      - ./ops/loki1.yml:/etc/grafana/provisioning/datasources/loki.yml
+    # command: -config.file=/etc/loki/local-config.yaml
+    # volumes:
+    #   # - ./loki:/etc/loki
+    #   - ./ops/loki1.yml:/etc/grafana/provisioning/datasources/loki.yml
     networks:
       - raft_network
 
@@ -180,13 +178,19 @@ services:
     networks:
       - raft_network
 
+  # otel-collector:
+  #   image: otel/opentelemetry-collector
+  #   container_name: otel-collector
+  #   ports:
+  #     - "4317:4317"
+  #   volumes:
+  #     - ./ops/collector-config.yaml:/etc/otel-collector/config.yaml
   otel-collector:
     image: otel/opentelemetry-collector
-    container_name: otel-collector
-    ports:
-      - "4317:4317"
     volumes:
-      - ./ops/collector-config.yaml:/etc/otel-collector/config.yaml
+      - ./ops/collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config", "/etc/otel-collector-config.yaml"]
+
     networks:
       - raft_network
 
@@ -200,5 +204,4 @@ services:
 
 networks:
   raft_network:
-  monitoring:
   

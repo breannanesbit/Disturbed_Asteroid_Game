@@ -5,6 +5,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Grafana.Loki;
+using Serilog.Sinks.Loki;
 using Shared;
 using Shared.SignalRService;
 using System.Reflection;
@@ -43,6 +44,7 @@ builder.Host.UseSerilog((context, loggerConfig) =>
         .Enrich.WithProperty("job", "your-api-job")
         .Enrich.WithExceptionDetails()
         .WriteTo.Console()
+        .WriteTo.LokiHttp("http://loki:3100")
         .WriteTo.GrafanaLoki("http://loki:3100");
 });
 
@@ -57,14 +59,12 @@ builder.Services.AddSingleton<ActorSignalRService>();
 
 // // starts the IHostedService, which creates the ActorSystem and actors
 builder.Services.AddHostedService<AkkaService>(sp => (AkkaService)sp.GetRequiredService<IActorBridge>());
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-}
+
 
 
 app.UseStaticFiles();

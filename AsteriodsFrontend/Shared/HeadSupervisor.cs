@@ -20,6 +20,7 @@ namespace Actors.UserActors
             });
             Receive<User>((user) =>
             {
+                Console.WriteLine("in head");
                 newUserSupervisor.Forward(user);
             });
             Receive<NewLobbyObject>((newLobby) =>

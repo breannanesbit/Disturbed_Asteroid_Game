@@ -9,16 +9,16 @@
   <ItemGroup>
     <PackageReference Include="Akka" Version="1.5.19" />
     <PackageReference Include="Akka.Cluster.Tools" Version="1.5.19" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="2.4.3" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="8.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
+	<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.4" />
 	  <PackageReference Include="Akka.DependencyInjection" Version="1.5.18" />
    <PackageReference Include="Akka.Bootstrap.Docker" Version="0.5.3" />
     <PackageReference Include="Akka.DependencyInjection" Version="1.5.19" />
-    <PackageReference Include="Microsoft.AspNet.SignalR.Core" Version="2.4.3" />
-	<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.4" />
 		  <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
 
   </ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App"></FrameworkReference>
+	</ItemGroup>
 
 </Project>

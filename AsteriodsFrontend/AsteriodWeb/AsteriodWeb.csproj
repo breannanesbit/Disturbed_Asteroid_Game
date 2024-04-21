@@ -14,8 +14,6 @@
 	  <PackageReference Include="Akka.Cluster.Tools" Version="1.5.19" />
 	      <PackageReference Include="Akka.Cluster" Version="1.5.19" />
     <PackageReference Include="Akka.DependencyInjection" Version="1.5.19" />
-    <PackageReference Include="Microsoft.AspNet.SignalR.Core" Version="2.4.3" />
-	<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.4" />
 	<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
     <PackageReference Include="OpenTelemetry" Version="1.8.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.8.0" />
@@ -27,6 +25,8 @@
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.2-dev-00338" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
+	  <PackageReference Include="Serilog.Sinks.Loki" Version="3.0.0" />
+
   </ItemGroup>
 
   <ItemGroup>

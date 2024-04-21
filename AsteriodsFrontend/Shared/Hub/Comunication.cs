@@ -1,13 +1,13 @@
 ﻿using Actors.UserActors;
 using Microsoft.AspNetCore.SignalR;
 
-namespace SignalRAPI.Hub
+namespace SignalRAPI
 {
-    public class ComunicationHub : DynamicHub
+    public class ComunicationHub : Hub
     {
         public async Task SendMessage(GameLobby message)
         {
-            Console.WriteLine("in hub");
+            Console.WriteLine($"in hub : {message.HeadPlayer.hubConnection}");
 
             var client = Clients.Client(message.HeadPlayer.hubConnection);
             Console.WriteLine($"hub connection: {client}");
