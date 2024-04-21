@@ -32,7 +32,7 @@ namespace Shared
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var diSetup = DependencyResolverSetup.Create(_serviceProvider);
+           /* var diSetup = DependencyResolverSetup.Create(_serviceProvider);
 
             var clusterEnv = Environment.GetEnvironmentVariable("AKKA_CLUSTER");
             Console.WriteLine(clusterEnv);
@@ -91,7 +91,7 @@ namespace Shared
                 _applicationLifetime.StopApplication();
             });
 
-            await Task.CompletedTask;
+            await Task.CompletedTask;*/
         }
 
 

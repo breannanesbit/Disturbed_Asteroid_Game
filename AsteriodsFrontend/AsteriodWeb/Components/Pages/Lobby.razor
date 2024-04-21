@@ -15,8 +15,8 @@
         <img style="transform: rotate(@(lazer.Angle)deg); transform-origin: center;position:absolute; z-index: 1; left:@(lazer.x)px; top: @(lazer.y)px;" src="images/ships/lazer.svg" alt="lazer"/>
     }
     <div style="width:50px; z-index:0;  position:absolute; left:@(state.x - 21)px; top: @(state.y-10)px;" class=" col">
-        <div class="row text-center"aa>
-            <img class="ship" src="images/ships/space-ship.svg" alt="ship" style="transform: rotate(@(state.Angle)deg); transform-origin: center;" />
+        <div class="row text-center" style="transform: rotate(@(state.Angle)deg); transform-origin: center;">
+            <AsteriodWeb.Components.Ships.ShipDisplay Color="@state.ShipColor" ShipNumber="@state.ShipImage" />
         </div>
         <div class="progress row" style="height:10px;">
             <div class="progress-bar bg-success" role="progressbar" style="width: @(state.Health)%" aria-valuenow="@(state.Health)" aria-valuemin="0" aria-valuemax="100">
@@ -36,25 +36,80 @@
             </div>
         </div>
     }
+    @foreach (var powerup in powerups)
+    {
+        <div style="height: 30px; width: 30px;position: absolute; left:@(powerup.X)px; top:@(powerup.Y)px;">
+            <img style="height:30px; width: 30px;" src="/images/Powerups/@powerup.Image" alt="powerup" />
+        </div>
+    }
 </div>
 
 @code {
     private List<Asteroid> asteroids = new List<Asteroid>();
     private List<Lazer> lazers = new List<Lazer>();
+    private List<Powerup> powerups = new List<Powerup>();
     private Ship state = new Ship();
     private bool isBoxClicked = false;
     private string boxClass => isBoxClicked ? "lobby-body border border-success" : "lobby-body border border-light";
     private Timer timer;
+    private Timer powertimer;
+    private int powerupTic = 0;
+    //health power up that increases health over time and glows
+    class Powerup
+    {
+        public int PowerupType { get; set; } = 0;
+        public int X { get; set; } = 690;
+        public int Y { get; set; } = 100;
+        public int BoundaryLeft { get; } = 0;
+        public int BoundaryTop { get; } = 0;
+        public int BoundaryRight { get; } = 695;
+        public int BoundaryBottom { get; } = 695;
+        public int HitBox { get; set; } = 30;
+        public string Image { get; set; } = "gear.svg";
+        public int Speed { get; set; } = 1;
+
+        public void MoveLeft()
+        {
+            X -= Speed;
+        }
+        public bool CheckBoundaries()
+        {
+            return X >= BoundaryLeft && X <= BoundaryRight && Y <= BoundaryBottom && Y >= BoundaryTop;
+        }
+        public void PowerUpCreation()
+        {
+            switch(PowerupType)
+            {
+                case 0:
+                    Image = "gear.svg";
+                    break;
+                case 1:
+                    Image = "target.svg";
+                    //dual
+                    //color change
+                    break;
+                case 2:
+                    Image = "target.svg";
+                    //tripple
+                    //color change
+                    break;
+                default:
+                    break;
+            }
+        }
+        public void CreatRandom()
+        {
+            PowerupType = 1;
+            PowerUpCreation();
+        }
+    }
+    //missle power up that allows for dual lasers+ 
+
 
     protected override async Task OnInitializedAsync()
     {
         await InitializeAsteroids();
-        lazers.Add(new Lazer
-            {
-                x = state.x,
-                y = state.y,
-                Angle = state.Angle,
-            });
+        
         timer = new Timer(async (_) => 
         {
             await MoveAsteroids();
@@ -64,6 +119,11 @@
 
     private async Task InitializeAsteroids()
     {
+        powerups.Add(new Powerup
+            {
+                PowerupType = 0, 
+            }
+        );
         asteroids.Add(new Asteroid
             {
                 X = 690,
@@ -111,18 +171,40 @@
             });
     }
 
+
     private async Task MoveAsteroids()
-    {
+    {   for(int i = powerups.Count -1; i >= 0; i--)
+        {
+            powerups[i].MoveLeft();
+            if(!powerups[i].CheckBoundaries())
+            { powerups.Remove(powerups[i]);
+                Powerup power = new Powerup();
+                power.CreatRandom();
+                powerups.Add(power);
+                continue;//hopefully stop the powerup from breaking the page when outof bounds.
+            }
+
+            if (state.CheckBox(powerups[i].X, powerups[i].Y))
+            {
+                state.TogglePowerup(true);
+                StartPowerupTimer();
+                powerups.Remove(powerups[i]);
+                Powerup power = new Powerup();
+                power.CreatRandom();
+                powerups.Add(power);
+            }
+        }
         for (int i = asteroids.Count - 1; i >= 0; i--)
         {
             var asteroid = asteroids[i];
             asteroid.Move();
-            if(asteroid.Health <= 0)
+            if (asteroid.Health <= 0)
             { asteroids.Remove(asteroid); }
-            if(state.CheckBox(asteroid.X, asteroid.Y))
+            if (state.CheckBox(asteroid.X, asteroid.Y))
             {
                 state.Damage(10);
             }
+
         }
         await InvokeAsync(StateHasChanged);
     }
@@ -192,7 +274,37 @@
         }
         StateHasChanged();
     }
+    private void StartPowerupTimer()
+    {
+        powerupTic = 0;
+        powertimer = new Timer(async (_) =>
+        {
+            if(!state.HasPowerup)
+            {
+                powertimer.Dispose();
+            }
+            else
+            {
+                
+                await ApplyPower();
+            }
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+    private async Task ApplyPower()
+    {
+        if(powerupTic != 20)
+        {
 
+            state.TogglePowerup(true);
+            powerupTic += 1;
+        }
+        else
+        {
+            state.TogglePowerup(false);
+            powertimer.Dispose();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
     private void HandleBoxClick()
     {
         isBoxClicked = true;
