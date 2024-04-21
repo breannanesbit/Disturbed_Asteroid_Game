@@ -68,8 +68,9 @@
     protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
-        .WithUrl("http://signalrapi:8080/ComunicationHub")
-            //.WithUrl("http://localhost:32794/ComunicationHub")
+        //.WithUrl("http://172.31.0.5/ComunicationHub")
+        .WithUrl("http://asteriodsweb.localhost/ComunicationHub")
+            //.WithUrl("http://signalrapi:8080/ComunicationHub")
             .Build();
 
         hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
@@ -92,9 +93,18 @@
 
         Console.WriteLine("Before start up");
 
-        await hubConnection.StartAsync();
-        Console.WriteLine($"Connection Id : {hubConnection.ConnectionId}");
-        Logger.LogInformation("Connection made it");
+        try
+        {
+            await hubConnection.StartAsync();
+            Console.WriteLine($"Connection Id : {hubConnection.ConnectionId}");
+            Logger.LogInformation("Connection made it");
+        }
+        catch(Exception ex)
+        {
+            Logger.LogError(ex.Message);
+        }
+
+        
 
         var getlobbies = new AllLobbies();
 
