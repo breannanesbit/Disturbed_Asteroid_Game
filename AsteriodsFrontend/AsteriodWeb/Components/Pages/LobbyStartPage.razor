@@ -9,7 +9,11 @@
 
 @* <h3>Lobby: @Lobby1.Id</h3>
 <button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button> *@
-<h3>Lobby: 2</h3>
+<div class="row">
+    <h3 class="col">Lobby: 2</h3>
+    <button class=" col btn btn-outline-success">Start Game</button> 
+</div>
+
 <div class="row">
     <div class="col">
         <h5 class="text-decoration-underline">Players</h5>
@@ -70,6 +74,7 @@
         if (currentPlayer != null)
         {
             currentPlayer.SpaceShip.ShipColor = color;
+            currentPlayer.SpaceShip.OriginalColor = color;
             SelectedColor = color;
             StateHasChanged();
             //currentPlayer.SpaceShip.color = color;

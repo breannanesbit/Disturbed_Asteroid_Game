@@ -25,7 +25,17 @@ public class Ship
     private double radiansPerDegree = Math.PI / 180;
     public string ShipColor { get; set; } = "white";
     public int ShipImage { get; set; } = 0;
+    public bool HasPowerup { get; set; } = false;
+    public string OriginalColor { get; set; } = "white";
+    
 
+    public void TogglePowerup(bool hasPowerup)
+    {
+        HasPowerup = hasPowerup;
+        Health += 10;
+        ShipColor = HasPowerup ? "powerBlue" : OriginalColor;
+        
+    }
 
     public void Damage(int hit)
     {
