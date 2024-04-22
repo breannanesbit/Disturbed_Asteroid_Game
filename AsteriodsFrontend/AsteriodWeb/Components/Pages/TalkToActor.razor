@@ -69,8 +69,8 @@
     {
         hubConnection = new HubConnectionBuilder()
         //.WithUrl("http://172.31.0.5/ComunicationHub")
-        .WithUrl("http://asteriodsweb.localhost/ComunicationHub")
-            //.WithUrl("http://signalrapi:8080/ComunicationHub")
+        //.WithUrl("http://asteriodsweb.localhost/ComunicationHub")
+           .WithUrl("http://signalrapi:8080/ComunicationHub")
             .Build();
 
         hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
