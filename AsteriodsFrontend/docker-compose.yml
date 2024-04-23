@@ -29,7 +29,7 @@ services:
             }
           }
           cluster {
-            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
+            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551", "akka.tcp://akka-universe@asteriodclient2:2551"]
             roles = ["userSession"]
           }
         }
@@ -55,7 +55,7 @@ services:
              }
            }
            cluster {
-             seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
+             seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551", "akka.tcp://akka-universe@asteriodclient2:2551"]
              roles = ["userSession"]
            }
          }
@@ -66,6 +66,8 @@ services:
     build:
       context: .
       dockerfile: Actor/Dockerfile
+    ports:
+       - "4535:8080"
     environment:
       AKKA_CLUSTER: |
        akka {
@@ -79,7 +81,7 @@ services:
             }
           }
           cluster {
-            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
+            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551", "akka.tcp://akka-universe@asteriodclient2:2551"]
             roles = ["lobby"]
           }
         }
@@ -147,7 +149,8 @@ services:
       - "9090:9090"
     volumes:
       # - ./prometheus:/etc/prometheus
-      - ./ops/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
+      - ./ops/pro.yml:/etc/prometheus/prometheus.yml
+
     networks:
       - raft_network
 
@@ -187,10 +190,11 @@ services:
   #     - ./ops/collector-config.yaml:/etc/otel-collector/config.yaml
   otel-collector:
     image: otel/opentelemetry-collector
+    ports:
+      - "4317:4317"
     volumes:
       - ./ops/collector-config.yaml:/etc/otel-collector-config.yaml
     command: ["--config", "/etc/otel-collector-config.yaml"]
-
     networks:
       - raft_network
 

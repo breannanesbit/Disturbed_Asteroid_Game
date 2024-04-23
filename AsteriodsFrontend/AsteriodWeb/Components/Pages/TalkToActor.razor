@@ -43,6 +43,7 @@
 
     private async Task SendKey()
     {
+        Logger.LogInformation("sending user name");
         Console.WriteLine("Made it to sendKey");
         var u = new User() { Username= key};
 
@@ -85,7 +86,7 @@
         hubConnection.On<AllLobbies>("GetAllLobbies", (lobbie) =>
         {
             Console.WriteLine("Client side");
-            Logger.LogInformation("Got all lobbies");
+            Logger.LogInformation($"Got all lobbies {lobbie.Lobbies}");
             lobbies = lobbie.Lobbies;
             StateHasChanged();
         });

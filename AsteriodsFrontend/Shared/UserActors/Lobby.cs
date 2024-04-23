@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Shared;
 using System.Net.Http.Json;
@@ -10,14 +11,17 @@ namespace Actors.UserActors
     public class LobbyActor : ReceiveActor
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<LobbyActor> logger;
+
         public GameLobby CurrentLobby { get; set; } = new GameLobby();
-        public LobbyActor()
+        public LobbyActor(ILogger<LobbyActor> logger)
         {
             _httpClient = new HttpClient();
 
             Receive<Lobby>((lobby) =>
             {
                 Console.WriteLine("made it to the lobby actor");
+                logger.LogInformation("creating new lobby in the actor");
                 CurrentLobby.CurrentState = GameState.Joining;
                 CurrentLobby.HeadPlayer = lobby.HeadPlayer;
                 CurrentLobby.Id = lobby.Id;
@@ -38,6 +42,7 @@ namespace Actors.UserActors
             {
                 if (CurrentLobby.HeadPlayer.Username == state.user)
                 {
+                    logger.LogInformation($"Changing {state.lobbyId} state");
                     CurrentLobby.CurrentState = state.lobbyState;
                     Sender.Tell(CurrentLobby.CurrentState);
                 }
@@ -48,14 +53,14 @@ namespace Actors.UserActors
                 // Check if the user is already in the lobby
                 if (CurrentLobby.Players.Any(u => u.Username == state.username))
                 {
-                    Sender.Tell(CurrentLobby.Players.Count); // Reply with the current player count
+                    Sender.Tell(CurrentLobby.CurrentState); // Reply with the current player count
                 }
                 else
                 {
                     // Add the user to the lobby
                     CurrentLobby.Players.Add(new User { Username = state.username });
                     // Reply with the updated lobby state
-                    Sender.Tell(CurrentLobby.Players.Count);
+                    Sender.Tell(CurrentLobby.CurrentState);
                 }
             });
 
@@ -80,7 +85,7 @@ namespace Actors.UserActors
                 }
 
             });
-
+            this.logger = logger;
         }
 
 
@@ -107,6 +112,6 @@ namespace Actors.UserActors
         }
 
         public static Props Props() =>
-            Akka.Actor.Props.Create(() => new LobbyActor());
+            Akka.Actor.Props.Create(() => new LobbyActor(new LoggerFactory().CreateLogger<LobbyActor>()));
     }
 }

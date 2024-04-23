@@ -7,6 +7,7 @@ using Serilog.Exceptions;
 using Serilog.Sinks.Grafana.Loki;
 using Serilog.Sinks.Loki;
 using Shared;
+using Shared.Metrics;
 using Shared.SignalRService;
 using System.Reflection;
 
@@ -33,10 +34,17 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation()
         //.AddConsoleExporter()
         .AddOtlpExporter())
-    .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation()
+    .WithMetrics(metrics => metrics
+        .AddMeter(DefineMetrics.lobbyMeter.Name)
+        .AddAspNetCoreInstrumentation()
         .AddRuntimeInstrumentation()
         //.AddConsoleExporter()
-        .AddOtlpExporter());
+        .AddOtlpExporter(o =>
+        {
+            o.Endpoint = new Uri("http://otel-collector:4317/");
+        })
+        .AddPrometheusExporter()
+        );
 
 builder.Host.UseSerilog((context, loggerConfig) =>
 {
@@ -65,7 +73,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-
+app.MapPrometheusScrapingEndpoint();
 
 app.UseStaticFiles();
 app.UseAntiforgery();

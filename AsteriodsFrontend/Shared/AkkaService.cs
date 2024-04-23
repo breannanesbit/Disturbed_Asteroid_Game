@@ -1,4 +1,3 @@
-using Actors;
 using Actors.UserActors;
 using Akka.Actor;
 using Akka.Cluster.Tools.Singleton;
@@ -6,6 +5,7 @@ using Akka.Configuration;
 using Akka.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Shared.SignalRService;
 
 namespace Shared
@@ -33,7 +33,7 @@ namespace Shared
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-           /* var diSetup = DependencyResolverSetup.Create(_serviceProvider);
+            var diSetup = DependencyResolverSetup.Create(_serviceProvider);
 
             var clusterEnv = Environment.GetEnvironmentVariable("AKKA_CLUSTER");
             Console.WriteLine(clusterEnv);
@@ -46,13 +46,13 @@ namespace Shared
 
             var cluster = Akka.Cluster.Cluster.Get(_actorSystem);
 
-            var signalRProps = Props.Create(() => new SignalRActor(signalRService));
-            var signalRActorRef = _actorSystem.ActorOf(signalRProps, "signalRActor");
+            //var signalRProps = Props.Create(() => new SignalRActor(signalRService));
+            //var signalRActorRef = _actorSystem.ActorOf(signalRProps, "signalRActor");
 
             if (cluster.SelfRoles.Contains("lobby"))
             {
 
-                var lobbySupProps = DependencyResolver.For(_actorSystem).Props<LobbySupervisor>(signalRActorRef);
+                var lobbySupProps = DependencyResolver.For(_actorSystem).Props<LobbySupervisor>(signalRService, new LoggerFactory().CreateLogger<LobbySupervisor>());
                 var singletonProps = ClusterSingletonManager.Props(
                     singletonProps: lobbySupProps,
                     terminationMessage: PoisonPill.Instance,
@@ -68,7 +68,7 @@ namespace Shared
 
             if (cluster.SelfRoles.Contains("userSession"))
             {
-                var userSupProps = DependencyResolver.For(_actorSystem).Props<UserSupervisor>(signalRActorRef, lobbySupervisorRef);
+                var userSupProps = DependencyResolver.For(_actorSystem).Props<UserSupervisor>(signalRService, lobbySupervisorRef);
                 var userSingletionProps = ClusterSingletonManager.Props(
                     singletonProps: userSupProps,
                     terminationMessage: PoisonPill.Instance,
@@ -101,7 +101,7 @@ namespace Shared
                 _applicationLifetime.StopApplication();
             });
 
-            await Task.CompletedTask;*/
+            await Task.CompletedTask;
         }
 
 
