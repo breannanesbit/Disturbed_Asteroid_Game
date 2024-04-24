@@ -11,17 +11,17 @@
 <button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button> *@
 <div class="row">
     <h3 class="col">Lobby: 2</h3>
-    <button class=" col btn btn-outline-success">Start Game</button> 
+    <button class=" col btn btn-outline-success" @onclick="ChangeGameState">Start Game</button>
 </div>
 
 <div class="row">
     <div class="col">
         <h5 class="text-decoration-underline">Players</h5>
         <ul>
-            @foreach (var player in Players)
+            @foreach (var player in Lobby1.Game.Players)
             {
-                <li>@player.UserName: 
-                <AsteriodWeb.Components.Ships.ShipDisplay Color="@player.SpaceShip.ShipColor" ShipNumber="@player.SpaceShip.ShipImage" />
+                <li>@player.Username: 
+                <AsteriodWeb.Components.Ships.ShipDisplay Color="@player.Ship.ShipColor" ShipNumber="@player.Ship.ShipImage" />
                 </li>
 
             }
@@ -69,12 +69,12 @@
     private void ColorSelected(string color)
     {
         Console.WriteLine("color selected", color);
-        var currentPlayer = Players.FirstOrDefault(p => p.UserName == "Player 1");
+        var currentPlayer = Lobby1.Game.Players.FirstOrDefault(p => p.Username == Lobby1.user.Username);
 
         if (currentPlayer != null)
         {
-            currentPlayer.SpaceShip.ShipColor = color;
-            currentPlayer.SpaceShip.OriginalColor = color;
+            currentPlayer.Ship.ShipColor = color;
+            currentPlayer.Ship.OriginalColor = color;
             SelectedColor = color;
             StateHasChanged();
             //currentPlayer.SpaceShip.color = color;
@@ -83,48 +83,37 @@
     private void ShipClicked(int image)
     {
         Console.WriteLine("selected image:",image);
-        var currentPlayer = Players.FirstOrDefault(p => p.UserName == "Player 1");
+        var currentPlayer = Lobby1.Game.Players.FirstOrDefault(p => p.Username == Lobby1.user.Username);
         if(currentPlayer != null)
         {
-            currentPlayer.SpaceShip.ShipImage = image;
+            currentPlayer.Ship.ShipImage = image;
             StateHasChanged();
         }
     }
-    public class User
+
+
+
+    [Parameter]
+    public UserInAGame Lobby1 { get; set; }
+    private HubConnection? hubConnection;
+
+
+    protected override async Task OnInitializedAsync()
     {
-        public string UserName { get; set; }
-        public Ship SpaceShip { get; set; }
-    }
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl("http://signalrapi:8000/ComunicationHub")
+        //.WithUrl("http://localhost:32772/ComunicationHub")
+        .Build();
 
-    private List<User> Players = new List<User>()
-    {
-      new User { UserName = "Player 1", SpaceShip = new Ship()},
-      new User { UserName = "Player 2", SpaceShip = new Ship()},
-      new User { UserName = "Player 3", SpaceShip = new Ship()},
-      new User { UserName = "Player 4", SpaceShip = new Ship()},
+        hubConnection.On<GameLobby>("GameStarted", (message) =>
+            {
+                if(message.CurrentState == GameState.Playing)
+                {
+                    //navigate to the lobby game page
+                    Lobby1.Game = message;
 
-    }
-
-    ;
-
-     /* [Parameter]
-     public GameLobby Lobby1 { get; set; }
-     private HubConnection? hubConnection;
-
-
-     protected override async Task OnInitializedAsync()
-         {
-         hubConnection = new HubConnectionBuilder()
-             .WithUrl("http://signalrapi:8000/ComunicationHub")
-             //.WithUrl("http://localhost:32772/ComunicationHub")
-         .Build();
-
-         hubConnection.On<GameState>("GameStarted", (message) =>
-             {
-             if(message == GameState.Playing)
-                 {
-                 //navigate to the lobby game page
-         }
+                    NavigationManager.NavigateTo($"/lobby?Lobby1={Lobby1}");
+             }
 
          });
 
@@ -142,12 +131,13 @@
         {
         var cgs = new ChangeGameState
                  {
-                 user = Lobby1.HeadPlayer.Username,
-                 lobbyId = Lobby1.Id,
+                 user = Lobby1.Game.HeadPlayer.Username,
+                 lobbyId = Lobby1.Game.Id,
+                 lobby = Lobby1.Game,
                  lobbyState = GameState.Playing
          };
          var result = await akkaService.Ask<ChangeGameState>(cgs);
 
-    }*/
+    }
 }
 

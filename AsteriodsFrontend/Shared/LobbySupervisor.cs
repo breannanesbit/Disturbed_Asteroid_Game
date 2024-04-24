@@ -20,6 +20,24 @@ namespace Actors.UserActors
             this.logger = logger;
             Lobbies = new List<Lobby>();
 
+            Receive<Terminated>(t =>
+            {
+
+                var lobby = Lobbies.Find(l => l.ActorRef == t.ActorRef);
+                if (lobby != null)
+                {
+                    var newLobbyActor = Context.ActorOf(LobbyActor.Props(), lobby.Id.ToString());
+                    Context.Watch(newLobbyActor);
+
+                    var newlobby = new Lobby { HeadPlayer = lobby.HeadPlayer, ActorRef = newLobbyActor, Id = lobby.Id };
+                    Lobbies.Add(lobby);
+                }
+                else
+                {
+                    logger.LogError("Didn't find lobby to stand back up");
+                }
+            });
+
 
             Receive<NewLobbyObject>(NewLobby =>
             {
@@ -31,13 +49,14 @@ namespace Actors.UserActors
                     {
                         var id = Guid.NewGuid();
                         var newLobbyActor = Context.ActorOf(LobbyActor.Props(), id.ToString());
+                        Context.Watch(newLobbyActor);
 
                         // Increase the lobby counter when a new lobby is created
                         DefineMetrics.LobbyCounter.Add(1);
 
                         var user = new User() { Username = NewLobby.username, hubConnection = NewLobby.hubConnection };
 
-                        var lobby = new Lobby { HeadPlayer = user, ActorRef = newLobbyActor, Id = Guid.NewGuid() };
+                        var lobby = new Lobby { HeadPlayer = user, ActorRef = newLobbyActor, Id = id };
                         Lobbies.Add(lobby);
 
                         newLobbyActor.Forward(lobby);

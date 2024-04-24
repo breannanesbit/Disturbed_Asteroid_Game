@@ -35,7 +35,7 @@ builder.Services.AddOpenTelemetry()
         //.AddConsoleExporter()
         .AddOtlpExporter())
     .WithMetrics(metrics => metrics
-        .AddMeter(DefineMetrics.lobbyMeter.Name)
+        .AddMeter(DefineMetrics.lobbyMeterName)
         .AddAspNetCoreInstrumentation()
         .AddRuntimeInstrumentation()
         //.AddConsoleExporter()

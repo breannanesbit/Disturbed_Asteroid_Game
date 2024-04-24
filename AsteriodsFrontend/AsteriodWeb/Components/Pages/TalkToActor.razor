@@ -10,9 +10,9 @@
 
 
 <h3>Enter Username and then can be added to a Lobby</h3>
-
-    <label for="usernameid">Username</label>
-<input id="usernameid" class="form-control" @bind="key" /> 
+<label for="usernameid">Username</label>
+<InputText id="usernameid" class="form-control" @bind-Value="key" @oninput="ValidateInput" />
+<span class="text-danger">@validationMessage</span>
 <button class="btn btn-primary" @onclick="SendKey">Send</button>
 
 @if (!string.IsNullOrEmpty(response.Username))
@@ -38,14 +38,35 @@
     private HubConnection? hubConnection;
     private GameLobby GotSingalRMessage = new();
     private List<Actors.UserActors.Lobby> lobbies = new();
+    private string validationMessage;
+    private User u = new();
 
 
+    private void ValidateInput(ChangeEventArgs e)
+    {
+        string inputValue = e.Value.ToString();
+
+        // Regular expression to match only alphanumeric characters
+        if (!System.Text.RegularExpressions.Regex.IsMatch(inputValue, "^[a-zA-Z0-9]*$"))
+        {
+            validationMessage = "Username must contain only letters and numbers.";
+        }
+        // Character length validation
+        else if (inputValue.Length > 15) // Adjust the character length limit as needed
+        {
+            validationMessage = "Username cannot exceed 15 characters.";
+        }
+        else
+        {
+            validationMessage = null;
+        }
+    }
 
     private async Task SendKey()
     {
         Logger.LogInformation("sending user name");
         Console.WriteLine("Made it to sendKey");
-        var u = new User() { Username= key};
+        u = new User() { Username= key, hubConnection = hubConnection.ConnectionId };
 
         // Obtain a reference to the router actor
         var result = await akkaService.Ask<User>(u);
@@ -69,8 +90,8 @@
     protected override async Task OnInitializedAsync()
     {
         hubConnection = new HubConnectionBuilder()
-        //.WithUrl("http://172.31.0.5/ComunicationHub")
-        //.WithUrl("http://asteriodsweb.localhost/ComunicationHub")
+           //.WithUrl("http://172.31.0.5/ComunicationHub")
+           //.WithUrl("http://asteriodsweb.localhost/ComunicationHub")
            .WithUrl("http://signalrapi:8080/ComunicationHub")
             .Build();
 
@@ -79,7 +100,14 @@
 
             Logger.LogInformation("Made it to receive gamelobby object");
             GotSingalRMessage = message;
-            NavigationManager.NavigateTo($"/LobbyStartPage?lobby={GotSingalRMessage}");
+
+            var userToGame = new UserInAGame()
+            {
+                user = u,
+                Game = GotSingalRMessage,
+            };
+
+            NavigationManager.NavigateTo($"/LobbyStartPage?Lobby1={userToGame}");
             StateHasChanged();
         });
 

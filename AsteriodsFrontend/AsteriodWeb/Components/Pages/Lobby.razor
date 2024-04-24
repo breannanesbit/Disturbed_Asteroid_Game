@@ -1,4 +1,5 @@
 ﻿@page "/lobby"
+@using Actors.UserActors
 @using Shared
 @rendermode InteractiveServer
 <PageTitle>Lobby</PageTitle>
@@ -45,6 +46,10 @@
 </div>
 
 @code {
+
+    [Parameter]
+    public UserInAGame Lobby1 { get; set; }
+
     private List<Asteroid> asteroids = new List<Asteroid>();
     private List<Lazer> lazers = new List<Lazer>();
     private List<Powerup> powerups = new List<Powerup>();
