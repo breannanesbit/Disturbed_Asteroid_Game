@@ -366,5 +366,176 @@ namespace AstoridsTest
             Assert.Equal(response2?.HeadPlayer.Ship.Health, 0);
             Assert.Equal(response2.CurrentState, GameState.Over);
         }
+        [Fact]
+        public void PlayerCanSendMovementForwardToActors()
+        {
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var signalRActor = system.ActorOf(Props.Create<SignalRActor>(), "SignalRActor");
+            var newLobbySupervisor = system.ActorOf(Props.Create<LobbySupervisor>(signalRActor), "NewLobbySupervisor");
+
+            var username = "TomRiddle";
+
+            var newlobby = new NewLobbyObject { username = username, hubConnection = "hubConnection" };
+
+            newLobbySupervisor.Tell(newlobby);
+
+            var user = new User() { Username = username };
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var message =new MoveEvent()
+            {
+                lobbyId = response.Id,
+                user = user,
+                ShipMoves = ShipMoves.Forward,
+            };
+
+            newLobbySupervisor.Tell(message);
+            
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            int X = 100;
+            int Y = 100 - 10;
+            Assert.Equal(X, response2.HeadPlayer.Ship.x);
+            Assert.Equal(Y ,response2.HeadPlayer.Ship.y);
+        }
+        [Fact]
+        public void PlayerCanSendMovementBackwardToActors()
+        {
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var signalRActor = system.ActorOf(Props.Create<SignalRActor>(), "SignalRActor");
+            var newLobbySupervisor = system.ActorOf(Props.Create<LobbySupervisor>(signalRActor), "NewLobbySupervisor");
+
+            var username = "TomRiddle";
+
+            var newlobby = new NewLobbyObject { username = username, hubConnection = "hubConnection" };
+
+            newLobbySupervisor.Tell(newlobby);
+
+            var user = new User() { Username = username };
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var message = new MoveEvent()
+            {
+                lobbyId = response.Id,
+                user = user,
+                ShipMoves = ShipMoves.Backward,
+            };
+
+            newLobbySupervisor.Tell(message);
+
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            int X = 100;
+            int Y = 100 + 10;
+            Assert.Equal(X, response2.HeadPlayer.Ship.x);
+            Assert.Equal(Y, response2.HeadPlayer.Ship.y);
+        }
+        [Fact]
+        public void PlayerCanSendMovementLeftToActors()
+        {
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var signalRActor = system.ActorOf(Props.Create<SignalRActor>(), "SignalRActor");
+            var newLobbySupervisor = system.ActorOf(Props.Create<LobbySupervisor>(signalRActor), "NewLobbySupervisor");
+
+            var username = "TomRiddle";
+
+            var newlobby = new NewLobbyObject { username = username, hubConnection = "hubConnection" };
+
+            newLobbySupervisor.Tell(newlobby);
+
+            var user = new User() { Username = username };
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var message = new MoveEvent()
+            {
+                lobbyId = response.Id,
+                user = user,
+                ShipMoves = ShipMoves.Left
+            };
+
+            newLobbySupervisor.Tell(message);
+
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            int X = 100;
+            int Y = 100;
+            int angle = 10;
+            Assert.Equal(X, response2.HeadPlayer.Ship.x);
+            Assert.Equal(Y, response2.HeadPlayer.Ship.y);
+            Assert.Equal(angle, response2.HeadPlayer.Ship.Angle);
+        }
+        [Fact]
+        public void PlayerCanSendMovementRightToActors()
+        {
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var signalRActor = system.ActorOf(Props.Create<SignalRActor>(), "SignalRActor");
+            var newLobbySupervisor = system.ActorOf(Props.Create<LobbySupervisor>(signalRActor), "NewLobbySupervisor");
+
+            var username = "TomRiddle";
+
+            var newlobby = new NewLobbyObject { username = username, hubConnection = "hubConnection" };
+
+            newLobbySupervisor.Tell(newlobby);
+
+            var user = new User() { Username = username };
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var message = new MoveEvent()
+            {
+                lobbyId = response.Id,
+                user = user,
+                ShipMoves = ShipMoves.Left
+            };
+
+            newLobbySupervisor.Tell(message);
+
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            int X = 100;
+            int Y = 100;
+            int angle = -10;
+            Assert.Equal(X, response2.HeadPlayer.Ship.x);
+            Assert.Equal(Y, response2.HeadPlayer.Ship.y);
+            Assert.Equal(angle, response2.HeadPlayer.Ship.Angle);
+        }
+        [Fact]
+        public void PlayerWillKeepMovingForward()
+        {
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var signalRActor = system.ActorOf(Props.Create<SignalRActor>(), "SignalRActor");
+            var newLobbySupervisor = system.ActorOf(Props.Create<LobbySupervisor>(signalRActor), "NewLobbySupervisor");
+
+            var username = "TomRiddle";
+
+            var newlobby = new NewLobbyObject { username = username, hubConnection = "hubConnection" };
+
+            newLobbySupervisor.Tell(newlobby);
+
+            var user = new User() { Username = username };
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var message = new MoveEvent()
+            {
+                lobbyId = response.Id,
+                user = user,
+                ShipMoves = ShipMoves.Left
+            };
+
+            newLobbySupervisor.Tell(message);
+
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            int X = 100;
+            int Y = 100;
+            int angle = -10;
+            Assert.Equal(X, response2.HeadPlayer.Ship.x);
+            Assert.Equal(Y, response2.HeadPlayer.Ship.y);
+            Assert.Equal(angle, response2.HeadPlayer.Ship.Angle);
+        }
     }
 }

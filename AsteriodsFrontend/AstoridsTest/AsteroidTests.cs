@@ -69,4 +69,16 @@ public class AsteroidTests : TestKit
         Assert.Equal(100, asteroid.Y);
         Assert.Equal(100, asteroid.X);
     }
+    [Fact]
+    public void Asertoid_Damages_Ship_on_Colision()
+    {
+        var ship = new Ship() {x = 100, y = 100};
+        var asteroid = new Asteroid() { Y = 694, X = 694, spawnX = 100, spawnY = 100, Movement = "Down" };
+        asteroid.Move();
+        if(ship.CheckBox(asteroid.X, asteroid.Y))
+        {
+            ship.Damage(10);
+        }
+        Assert.Equal(90, ship.Health);
+    }
 }

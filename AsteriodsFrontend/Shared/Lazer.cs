@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Actors.UserActors;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,8 @@ namespace Shared;
 
 public class Lazer
 {
+    public Guid lobbyId;
+    public User user;
     public int x { get; set; } = 0;
     public int y { get; set; } = 0;
     public int BoundaryLeft { get; } = 0;

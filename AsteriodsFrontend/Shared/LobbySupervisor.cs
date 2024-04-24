@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Shared;
 
 namespace Actors.UserActors
 {
@@ -40,7 +41,22 @@ namespace Actors.UserActors
                     Console.WriteLine(ex.ToString());
                 }
             });
-
+            Receive<MoveEvent>((MoveEvent) =>
+            {
+                var existingUser = Lobbies.Find(g => g.Id == MoveEvent.lobbyId);
+                if (existingUser != null)
+                {
+                    existingUser.ActorRef.Forward(MoveEvent);
+                }
+            });
+            Receive<Lazer>((lazer) =>
+            {
+                var existingUser = Lobbies.Find(g => g.Id == lazer.lobbyId);
+                if (existingUser != null)
+                {
+                    existingUser.ActorRef.Forward(lazer);
+                }
+            });
             Receive<GameLobby>(CreadtedLobby =>
             {
                 Console.WriteLine($"made it to call to signalR actor {SignalRActor.Path}");

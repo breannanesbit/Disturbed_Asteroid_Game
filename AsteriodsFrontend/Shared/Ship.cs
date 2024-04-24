@@ -27,6 +27,7 @@ public class Ship
     public int ShipImage { get; set; } = 0;
     public bool HasPowerup { get; set; } = false;
     public string OriginalColor { get; set; } = "white";
+    public int Points { get; set; } = 0;
     
 
     public void TogglePowerup(bool hasPowerup)
