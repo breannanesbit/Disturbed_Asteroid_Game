@@ -2,6 +2,7 @@
 @using Actors.UserActors
 @using Akka.Actor
 @using Microsoft.AspNetCore.SignalR.Client
+@using Newtonsoft.Json
 @using Shared
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -107,7 +108,10 @@
                 Game = GotSingalRMessage,
             };
 
-            NavigationManager.NavigateTo($"/LobbyStartPage?Lobby1={userToGame}");
+            var userToGameJson = JsonConvert.SerializeObject(userToGame);
+
+            // Append the serialized object as a route parameter to the URL
+            NavigationManager.NavigateTo($"/LobbyStartPage/{Uri.EscapeDataString(userToGameJson)}");
             StateHasChanged();
         });
 

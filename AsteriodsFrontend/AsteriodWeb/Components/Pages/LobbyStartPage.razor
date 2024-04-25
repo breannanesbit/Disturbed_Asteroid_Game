@@ -1,4 +1,5 @@
-﻿@page "/LobbyStartPage"
+﻿@page "/LobbyStartPage/{LobbyDatastring}"
+@using Newtonsoft.Json
 @using Actors.UserActors
 @using Shared;
 @using Microsoft.AspNetCore.SignalR.Client
@@ -18,12 +19,16 @@
     <div class="col">
         <h5 class="text-decoration-underline">Players</h5>
         <ul>
-            @foreach (var player in Lobby1.Game.Players)
+            @if(LobbyData != null)
             {
-                <li>@player.Username: 
-                <AsteriodWeb.Components.Ships.ShipDisplay Color="@player.Ship.ShipColor" ShipNumber="@player.Ship.ShipImage" />
-                </li>
+                @foreach (var player in LobbyData.Game.Players)
+                {
+                    <li>@player.Username: 
+                    <AsteriodWeb.Components.Ships.ShipDisplay Color="@player.Ship.ShipColor" ShipNumber="@player.Ship.ShipImage" />
+                    </li>
 
+                }
+                
             }
         </ul>
     </div>
@@ -69,7 +74,7 @@
     private void ColorSelected(string color)
     {
         Console.WriteLine("color selected", color);
-        var currentPlayer = Lobby1.Game.Players.FirstOrDefault(p => p.Username == Lobby1.user.Username);
+        var currentPlayer = LobbyData.Game.Players.FirstOrDefault(p => p.Username == LobbyData.user.Username);
 
         if (currentPlayer != null)
         {
@@ -83,7 +88,7 @@
     private void ShipClicked(int image)
     {
         Console.WriteLine("selected image:",image);
-        var currentPlayer = Lobby1.Game.Players.FirstOrDefault(p => p.Username == Lobby1.user.Username);
+        var currentPlayer = LobbyData.Game.Players.FirstOrDefault(p => p.Username == LobbyData.user.Username);
         if(currentPlayer != null)
         {
             currentPlayer.Ship.ShipImage = image;
@@ -94,14 +99,18 @@
 
 
     [Parameter]
-    public UserInAGame Lobby1 { get; set; }
+    public string LobbyDatastring { get; set; }
+    public UserInAGame LobbyData { get; set; }
     private HubConnection? hubConnection;
 
 
     protected override async Task OnInitializedAsync()
     {
+        var lobbyDataJson = Uri.UnescapeDataString(LobbyDatastring); // Decode URL-encoded JSON string
+        LobbyData = JsonConvert.DeserializeObject<UserInAGame>(lobbyDataJson);
+        Console.WriteLine($"Count of players form lobbystartpage { LobbyData?.Game.Players.Count}");
         hubConnection = new HubConnectionBuilder()
-            .WithUrl("http://signalrapi:8000/ComunicationHub")
+            .WithUrl("http://signalrapi:8080/ComunicationHub")
         //.WithUrl("http://localhost:32772/ComunicationHub")
         .Build();
 
@@ -110,9 +119,9 @@
                 if(message.CurrentState == GameState.Playing)
                 {
                     //navigate to the lobby game page
-                    Lobby1.Game = message;
+                    LobbyData.Game = message;
 
-                    NavigationManager.NavigateTo($"/lobby?Lobby1={Lobby1}");
+                    NavigationManager.NavigateTo($"/lobby?Lobby1={LobbyData}");
              }
 
          });
@@ -131,9 +140,9 @@
         {
         var cgs = new ChangeGameState
                  {
-                 user = Lobby1.Game.HeadPlayer.Username,
-                 lobbyId = Lobby1.Game.Id,
-                 lobby = Lobby1.Game,
+                 user = LobbyData.Game.HeadPlayer.Username,
+                lobbyId = LobbyData.Game.Id,
+                lobby = LobbyData.Game,
                  lobbyState = GameState.Playing
          };
          var result = await akkaService.Ask<ChangeGameState>(cgs);
