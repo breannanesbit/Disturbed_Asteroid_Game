@@ -7,7 +7,8 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
-@inject ILogger<TalkToActor> Logger // Inject ILogger here
+@inject ILogger<TalkToActor> Logger 
+@inject SignalRFrontendService signalRservice
 
 
 <h3>Enter Username and then can be added to a Lobby</h3>
@@ -36,7 +37,6 @@
 @code {
     private string key = "";
     private User response = new();
-    private HubConnection? hubConnection;
     private GameLobby GotSingalRMessage = new();
     private List<Actors.UserActors.Lobby> lobbies = new();
     private string validationMessage;
@@ -65,9 +65,12 @@
 
     private async Task SendKey()
     {
+        await signalRservice.IsConnectedAsync();
+        Logger.LogInformation($"Hub connection: {signalRservice.hubConnection.ConnectionId}");
+
         Logger.LogInformation("sending user name");
         Console.WriteLine("Made it to sendKey");
-        u = new User() { Username= key, hubConnection = hubConnection.ConnectionId };
+        u = new User() { Username = key, hubConnection = signalRservice.hubConnection.ConnectionId };
 
         // Obtain a reference to the router actor
         var result = await akkaService.Ask<User>(u);
@@ -77,7 +80,7 @@
 
     private async Task CreateANewLobby()
     {
-        var hubc = hubConnection?.ConnectionId;
+        var hubc = signalRservice.hubConnection?.ConnectionId;
         var nl = new NewLobbyObject() { username = key, hubConnection = hubc };
 
 
@@ -90,13 +93,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        hubConnection = new HubConnectionBuilder()
-           //.WithUrl("http://172.31.0.5/ComunicationHub")
-           //.WithUrl("http://asteriodsweb.localhost/ComunicationHub")
-           .WithUrl("http://signalrapi:8080/ComunicationHub")
-            .Build();
 
-        hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
+        signalRservice.hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
         {
 
             Logger.LogInformation("Made it to receive gamelobby object");
@@ -115,7 +113,7 @@
             StateHasChanged();
         });
 
-        hubConnection.On<AllLobbies>("GetAllLobbies", (lobbie) =>
+        signalRservice.hubConnection.On<AllLobbies>("GetAllLobbies", (lobbie) =>
         {
             Console.WriteLine("Client side");
             Logger.LogInformation($"Got all lobbies {lobbie.Lobbies}");
@@ -126,20 +124,11 @@
 
         Console.WriteLine("Before start up");
 
-        try
-        {
-            await hubConnection.StartAsync();
-            Console.WriteLine($"Connection Id : {hubConnection.ConnectionId}");
-            Logger.LogInformation("Connection made it");
-        }
-        catch(Exception ex)
-        {
-            Logger.LogError(ex.Message);
-        }
-
-        
-
-        var getlobbies = new AllLobbies();
+        var getlobbies = new AllLobbies()
+            {
+                hubConnection = signalRservice.hubConnection.ConnectionId,
+                Lobbies = new(),
+            };
 
         akkaService.Tell(getlobbies);
 
@@ -155,13 +144,6 @@
 
         akkaService.Tell(addNewUser);
     }
-
-    // Dispose the hub connection when component is disposed
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection != null)
-            await hubConnection.DisposeAsync();
-    } 
 
 }
 

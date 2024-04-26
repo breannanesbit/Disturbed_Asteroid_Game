@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Shared;
+using Shared.Metrics;
 using System.Net.Http.Json;
 
 namespace Actors.UserActors
@@ -51,6 +52,7 @@ namespace Actors.UserActors
 
             Receive<AddUserToLobby>(state =>
             {
+                DefineMetrics.UserCount.Add(1);
                 // Check if the user is already in the lobby
                 if (CurrentLobby.Players.Any(u => u.Username == state.username))
                 {

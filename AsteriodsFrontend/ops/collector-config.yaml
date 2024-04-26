@@ -12,7 +12,7 @@ exporters:
     endpoint: "http://zipkin:9411/api/v2/spans" # Assuming Zipkin is running in another container
   
   prometheus:
-    endpoint: 0.0.0.0:9000
+    endpoint: 0.0.0.0:9090
  
   otlphttp:
     endpoint: http://loki:3100/otlp

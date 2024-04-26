@@ -22,7 +22,9 @@ namespace SignalRAPI
         public async Task AllLobbiesSend(AllLobbies lobbies)
         {
             Console.WriteLine("hub all lobbies");
-            await Clients.All.SendAsync("GetAllLobbies", lobbies);
+            var client = Clients.Client(lobbies.hubConnection);
+
+            await client.SendAsync("GetAllLobbies", lobbies);
         }
     }
 }

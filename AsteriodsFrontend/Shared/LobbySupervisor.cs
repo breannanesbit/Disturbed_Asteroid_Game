@@ -107,6 +107,7 @@ namespace Actors.UserActors
 
             Receive<AllLobbies>(lobbies =>
             {
+                logger.LogInformation($"In lobby sup getting all lobbies");
                 var all = new AllLobbies()
                 {
                     Lobbies = Lobbies,

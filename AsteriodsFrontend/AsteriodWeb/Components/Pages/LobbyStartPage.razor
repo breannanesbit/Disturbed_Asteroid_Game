@@ -6,13 +6,19 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
+@inject SignalRFrontendService signalRservice
+@inject ILogger<TalkToActor> Logger
+
 
 
 @* <h3>Lobby: @Lobby1.Id</h3>
 <button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button> *@
 <div class="row">
     <h3 class="col">Lobby: 2</h3>
-    <button class=" col btn btn-outline-success" @onclick="ChangeGameState">Start Game</button>
+    @if(LobbyData.user.Username == LobbyData.Game.HeadPlayer.Username)
+    {
+        <button class=" col btn btn-outline-success" @onclick="ChangeGameState">Start Game</button>
+    }
 </div>
 
 <div class="row">
@@ -101,40 +107,33 @@
     [Parameter]
     public string LobbyDatastring { get; set; }
     public UserInAGame LobbyData { get; set; }
-    private HubConnection? hubConnection;
 
 
     protected override async Task OnInitializedAsync()
     {
+        await signalRservice.IsConnectedAsync();
+
         var lobbyDataJson = Uri.UnescapeDataString(LobbyDatastring); // Decode URL-encoded JSON string
         LobbyData = JsonConvert.DeserializeObject<UserInAGame>(lobbyDataJson);
         Console.WriteLine($"Count of players form lobbystartpage { LobbyData?.Game.Players.Count}");
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl("http://signalrapi:8080/ComunicationHub")
-        //.WithUrl("http://localhost:32772/ComunicationHub")
-        .Build();
 
-        hubConnection.On<GameLobby>("GameStarted", (message) =>
+        signalRservice.hubConnection.On<GameLobby>("GameStarted", (message) =>
             {
                 if(message.CurrentState == GameState.Playing)
                 {
                     //navigate to the lobby game page
+                    Logger.LogInformation($"made to to start the game");
                     LobbyData.Game = message;
-
-                    NavigationManager.NavigateTo($"/lobby?Lobby1={LobbyData}");
+                    var serlData = JsonConvert.SerializeObject(LobbyData);
+                    NavigationManager.NavigateTo($"/lobby?Lobby1={Uri.EscapeDataString(serlData)}");
              }
 
          });
 
-         await hubConnection.StartAsync();
      }
 
      // Dispose the hub connection when component is disposed
-     public async ValueTask DisposeAsync()
-         {
-         if (hubConnection != null)
-             await hubConnection.DisposeAsync();
-     }
+     
 
      private async Task ChangeGameState()
         {

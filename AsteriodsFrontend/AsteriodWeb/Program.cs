@@ -1,3 +1,4 @@
+using AsteriodWeb;
 using AsteriodWeb.Components;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -37,7 +38,7 @@ builder.Services.AddOpenTelemetry()
     .WithMetrics(metrics => metrics
         .AddMeter(DefineMetrics.lobbyMeterName)
         .AddAspNetCoreInstrumentation()
-        .AddRuntimeInstrumentation()
+        // .AddRuntimeInstrumentation()
         //.AddConsoleExporter()
         .AddOtlpExporter(o =>
         {
@@ -64,6 +65,8 @@ builder.Host.UseSerilog((context, loggerConfig) =>
 // });
 builder.Services.AddSingleton<IActorBridge, AkkaService>();
 builder.Services.AddSingleton<ActorSignalRService>();
+builder.Services.AddSingleton<SignalRFrontendService>();
+
 
 // // starts the IHostedService, which creates the ActorSystem and actors
 builder.Services.AddHostedService<AkkaService>(sp => (AkkaService)sp.GetRequiredService<IActorBridge>());
