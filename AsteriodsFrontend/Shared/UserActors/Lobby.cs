@@ -44,7 +44,7 @@ namespace Actors.UserActors
                 if (CurrentLobby.HeadPlayer.Username == state.user)
                 {
                     logger.LogInformation($"Changing {state.lobbyId} state");
-                    CurrentLobby = state.lobby;
+                    //CurrentLobby = state.lobby;
                     CurrentLobby.CurrentState = state.lobbyState;
                     Sender.Tell(CurrentLobby);
                 }

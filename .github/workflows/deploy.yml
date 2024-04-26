@@ -29,5 +29,5 @@ jobs:
 
       - name: Tests
         run: |
-          cd AsteriodsFrontend/AstroidsTest
+          cd AsteriodsFrontend/AsteroidTests
           dotnet test
