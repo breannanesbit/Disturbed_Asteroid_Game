@@ -193,7 +193,6 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./provisioning:/etc/grafana/provisioning
       - ./ops/loki1.yml:/etc/grafana/provisioning/datasources/ds.yaml
       - ./ops/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yaml
     depends_on:
