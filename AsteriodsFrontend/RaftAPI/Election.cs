@@ -45,6 +45,7 @@ public class Election
 
         startTimer = new System.Timers.Timer(timer);
         startTimer.Elapsed += CheckState;
+        startTimer.Interval = 1000;
         startTimer.Start();
     }
 
@@ -88,6 +89,7 @@ public class Election
     }
     public void CheckState(object? sender, ElapsedEventArgs e)
     {
+        Console.WriteLine("started in check state");
         while (true)
         {
             CheckWhatToDoWithTheStateAsync();
