@@ -23,13 +23,15 @@ services:
         - URL=asteroidsgame.duckdns.org
         - VALIDATION=duckdns
         - DUCKDNSTOKEN=${DUCKDNSTOKEN}
-        - STAGING=false
+        - STAGING=true
     volumes:
         - ./ops/nginx.conf:/config/nginx/site-confs/default.conf # new part
         - swag_data:/config
 
     ports:
         - 443:443 
+    networks:
+       - raft_network
   
   asteriodclient1:
     build:
