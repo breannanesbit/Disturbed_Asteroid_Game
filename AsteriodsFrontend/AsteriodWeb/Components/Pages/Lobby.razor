@@ -2,6 +2,7 @@
 @using Actors.UserActors
 @using Newtonsoft.Json
 @using Shared
+@inject IActorBridge akkaService
 @rendermode InteractiveServer
 @inject SignalRFrontendService signalRservice
 @inject ILogger<Lobby> Logger
@@ -9,8 +10,9 @@
 <PageTitle>Lobby</PageTitle>
 
 <div class="row">
-    <p class="col col-5">State: @(state.isDead ? "Game Over": "Playing")</p>
-    @* <button type="button" class="btn btn-danger col col-3" @* @onclick="HandleEnd" *@@* >End Game</button> *@
+    <p class="col col-5">State: @(Lobby1.Game.CurrentState)</p>
+    <p class="col">Points: @Lobby1.user.Ship.Points</p>
+    <button type="button" class="btn btn-danger col" @onclick="HandleLobbyDown">Take Down Lobby</button>
 </div>
 <br />
 
@@ -19,15 +21,19 @@
     {
         <img style="transform: rotate(@(lazer.Angle)deg); transform-origin: center;position:absolute; z-index: 1; left:@(lazer.x)px; top: @(lazer.y)px;" src="images/ships/lazer.svg" alt="lazer"/>
     }
-    <div style="width:50px; z-index:0;  position:absolute; left:@(state.x - 21)px; top: @(state.y-10)px;" class=" col">
-        <div class="row text-center" style="transform: rotate(@(state.Angle)deg); transform-origin: center;">
-            <AsteriodWeb.Components.Ships.ShipDisplay Color="@state.ShipColor" ShipNumber="@state.ShipImage" />
-        </div>
-        <div class="progress row" style="height:10px;">
-            <div class="progress-bar bg-success" role="progressbar" style="width: @(state.Health)%" aria-valuenow="@(state.Health)" aria-valuemin="0" aria-valuemax="100">
+    @foreach(var state in shipsAlive)
+    {
+        <div style="width:50px; z-index:0;  position:absolute; left:@(state.Ship.x - 21)px; top: @(state.Ship.y-10)px;" class=" col">
+            <div class="row text-center" style="transform: rotate(@(state.Ship.Angle)deg); transform-origin: center;">
+                <AsteriodWeb.Components.Ships.ShipDisplay Color="@state.Ship.ShipColor" ShipNumber="@state.Ship.ShipImage" />
+            </div>
+            <div class="progress row" style="height:10px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: @(state.Ship.Health)%" aria-valuenow="@(state.Ship.Health)" aria-valuemin="0" aria-valuemax="100">
+                </div>
             </div>
         </div>
-    </div>
+    }
+
     @* <p style="color:red;width:fit-content; position:relative; left:@(state.x)px; top:@(state.y)px;">.</p> *@
     @foreach (var asteroid in asteroids)
     {
@@ -55,66 +61,17 @@
     public string LobbyDatastring { get; set; }
     public UserInAGame Lobby1 { get; set; }
 
-    private List<Asteroid> asteroids = new List<Asteroid>();
-    private List<Lazer> lazers = new List<Lazer>();
-    private List<Powerup> powerups = new List<Powerup>();
-    private Ship state = new Ship();
+    private List<Asteroid> asteroids;
+    private List<Lazer> lazers;
+    private List<PowerUp> powerups;
+    private List<User> shipsAlive;
+    private List<User> ShipsDead;
     private bool isBoxClicked = false;
     private string boxClass => isBoxClicked ? "lobby-body border border-success" : "lobby-body border border-light";
     private Timer timer;
-    private Timer powertimer;
-    private int powerupTic = 0;
-    //health power up that increases health over time and glows
-    class Powerup
-    {
-        public int PowerupType { get; set; } = 0;
-        public int X { get; set; } = 690;
-        public int Y { get; set; } = 100;
-        public int BoundaryLeft { get; } = 0;
-        public int BoundaryTop { get; } = 0;
-        public int BoundaryRight { get; } = 695;
-        public int BoundaryBottom { get; } = 695;
-        public int HitBox { get; set; } = 30;
-        public string Image { get; set; } = "gear.svg";
-        public int Speed { get; set; } = 1;
-
-        public void MoveLeft()
-        {
-            X -= Speed;
-        }
-        public bool CheckBoundaries()
-        {
-            return X >= BoundaryLeft && X <= BoundaryRight && Y <= BoundaryBottom && Y >= BoundaryTop;
-        }
-        public void PowerUpCreation()
-        {
-            switch(PowerupType)
-            {
-                case 0:
-                    Image = "gear.svg";
-                    break;
-                case 1:
-                    Image = "target.svg";
-                    //dual
-                    //color change
-                    break;
-                case 2:
-                    Image = "target.svg";
-                    //tripple
-                    //color change
-                    break;
-                default:
-                    break;
-            }
-        }
-        public void CreatRandom()
-        {
-            PowerupType = 1;
-            PowerUpCreation();
-        }
-    }
-    //missle power up that allows for dual lasers+ 
-
+    private List<String> Moves = new List<String>();
+    private int lazerCount = 0;
+    private int seed = Guid.NewGuid().GetHashCode();
 
     protected override async Task OnInitializedAsync()
     {
@@ -123,138 +80,83 @@
         var lobbyDataJson = Uri.UnescapeDataString(LobbyDatastring); // Decode URL-encoded JSON string
         Lobby1 = JsonConvert.DeserializeObject<UserInAGame>(lobbyDataJson);
 
-        await InitializeAsteroids();
-        
+        asteroids = Lobby1.Game.Asteroids;
+        lazers = Lobby1.Game.Lazers;
+        powerups = Lobby1.Game.PowerUps;
+        shipsAlive = Lobby1.Game.Players;
+        ShipsDead = Lobby1.Game.DeadPlayers;
+        lazerCount = lazers.Count(l => l.user.Username == Lobby1.user.Username);
+
         timer = new Timer(async (_) => 
         {
-            await MoveAsteroids();
-            await MoveLazers();
+            await HandleSendMove();
         }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
     }
-
-    private async Task InitializeAsteroids()
+    private async Task HandleSendMove()
     {
-        powerups.Add(new Powerup
-            {
-                PowerupType = 0, 
-            }
-        );
-        asteroids.Add(new Asteroid
-            {
-                X = 690,
-                spawnX = 690,
-                Y = 10,
-                spawnY = 10,
-                ImagePath = "asteroid-1.svg",
-                Movement = "Diagonal",
-            });
-        asteroids.Add(new Asteroid
-            {
-                X = 10,
-                spawnX = 10,
-                Y = 10,
-                spawnY = 10,
-                ImagePath = "asteroid-3.svg",
-                Movement = "Down",
-            });
-        asteroids.Add(new Asteroid
-            {
-                X = 650,
-                spawnX = 650,
-                Y = 690,
-                spawnY = 690,
-                ImagePath = "asteroid-2.svg",
-                Movement = "Up",
-            });
-        asteroids.Add(new Asteroid
-            {
-                X = 10,
-                spawnX = 10,
-                Y = 290,
-                spawnY = 290,
-                ImagePath = "asteroid-2.svg",
-                Movement = "Right",
-            });
-        asteroids.Add(new Asteroid
-            {
-                X = 690,
-                spawnX = 690,
-                Y = 100,
-                spawnY = 100,
-                ImagePath = "asteroid-2.svg",
-                Movement = "Left",
-            });
-    }
-
-
-    private async Task MoveAsteroids()
-    {   for(int i = powerups.Count -1; i >= 0; i--)
+        var newMove = Moves.Last();
+        var ship = Lobby1.user.Ship;
+        if(newMove != Lobby1.user.Ship.Move)
         {
-            powerups[i].MoveLeft();
-            if(!powerups[i].CheckBoundaries())
-            { powerups.Remove(powerups[i]);
-                Powerup power = new Powerup();
-                power.CreatRandom();
-                powerups.Add(power);
-                continue;//hopefully stop the powerup from breaking the page when outof bounds.
-            }
+            switch (newMove)
+            {
+                case "Forward":
+                    var w = new MoveEvent()
+                        {
+                            ShipMoves = ShipMoves.Forward,
+                            user = Lobby1.user,
+                        };
+                    akkaService.Tell(w);
+                    break;
+                case "Backward":
+                    var s = new MoveEvent()
+                        {
+                            ShipMoves = ShipMoves.Backward,
+                            user = Lobby1.user,
+                        };
+                    akkaService.Tell(s);
+                    break;
+                case "Left":
+                    Moves.Add("Left");
 
-            if (state.CheckBox(powerups[i].X, powerups[i].Y))
-            {
-                state.TogglePowerup(true);
-                StartPowerupTimer();
-                powerups.Remove(powerups[i]);
-                Powerup power = new Powerup();
-                power.CreatRandom();
-                powerups.Add(power);
-            }
-        }
-        for (int i = asteroids.Count - 1; i >= 0; i--)
-        {
-            var asteroid = asteroids[i];
-            asteroid.Move();
-            if (asteroid.Health <= 0)
-            { asteroids.Remove(asteroid); }
-            if (state.CheckBox(asteroid.X, asteroid.Y))
-            {
-                state.Damage(10);
-            }
+                    var a = new MoveEvent()
+                        {
+                            ShipMoves = ShipMoves.Left,
+                            user = Lobby1.user,
+                        };
+                    akkaService.Tell(a);
+                    break;
+                case "Right":
+                    Moves.Add("Right");
 
+                    var d = new MoveEvent()
+                        {
+                            ShipMoves = ShipMoves.Right,
+                            user = Lobby1.user,
+                        };
+                    akkaService.Tell(d);
+                    break;
+                case "Lazer":
+                    Moves.Add("Lazer");
+                    if (lazerCount < 7)
+                    {
+                        var lazer = new Lazer
+                            {
+                                //user id and lobby id
+                                x = ship.x,
+                                y = ship.y,
+                                Angle = ship.Angle,
+                            };
+                        akkaService.Tell(lazer);
+                    }
+                    break;
+            }
+            Moves.Remove(newMove);
         }
-        await InvokeAsync(StateHasChanged);
-    }
-    private async Task MoveLazers()
-    {
-        for (int i = lazers.Count - 1; i >= 0; i--)
-        {
-            var lazer = lazers[i];
-            var isNotOnBoard = lazer.Move();
-            if(isNotOnBoard)
-            {
-                lazers.Remove(lazer);
-            }
-            bool collisionDetected = false; 
-            for (int k = asteroids.Count - 1; k >= 0; k--)
-            {
-                var asteroid = asteroids[k];
-                if (asteroid.CheckBox(lazer.x, lazer.y))
-                {
-                    asteroid.Damage();
-                    collisionDetected = true; 
-                    break; 
-                }
-            }
-            if (collisionDetected)
-            {
-                lazers.Remove(lazer);
-            }
-
-        }
-        await InvokeAsync(StateHasChanged);
     }
     public async Task HandleKeyPress(KeyboardEventArgs e)
     {
-        if(state.isDead)
+        if(Lobby1.user.Ship.isDead)
         {
             StateHasChanged();
             return;
@@ -264,64 +166,34 @@
         switch (key)
         {
             case "w":
-                state.moveForward();
+                Moves.Add("Forward");
                 break;
             case "s":
-                state.moveBackward();
+                Moves.Add("Backward");
                 break;
             case "a":
-                state.moveLeft();
+                Moves.Add("Left");
                 break;
             case "d":
-                state.moveRight();
+                Moves.Add("Right");
                 break;
             case "l":
-                if (lazers.Count < 7)
-                {
-                    lazers.Add(new Lazer
-                        {
-                            x = state.x,
-                            y = state.y,
-                            Angle = state.Angle,
-                        });
-                }
+                Moves.Add("Lazer");
                 break;
         }
         StateHasChanged();
-    }
-    private void StartPowerupTimer()
-    {
-        powerupTic = 0;
-        powertimer = new Timer(async (_) =>
-        {
-            if(!state.HasPowerup)
-            {
-                powertimer.Dispose();
-            }
-            else
-            {
-                
-                await ApplyPower();
-            }
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-    }
-    private async Task ApplyPower()
-    {
-        if(powerupTic != 20)
-        {
-
-            state.TogglePowerup(true);
-            powerupTic += 1;
-        }
-        else
-        {
-            state.TogglePowerup(false);
-            powertimer.Dispose();
-        }
-        await InvokeAsync(StateHasChanged);
     }
     private void HandleBoxClick()
     {
         isBoxClicked = true;
     }
+    private void HandleLobbyDown()
+    {
+        StopActorMessage lobby = new StopActorMessage()
+            {
+                LobbyId = Lobby1.Game.Id,
+            };
+        akkaService.Tell(lobby);
+    }
+
 }

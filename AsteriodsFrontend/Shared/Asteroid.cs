@@ -8,6 +8,7 @@ namespace Shared;
 
 public class Asteroid
 {
+
     public int X { get; set; } = 0;
     public int Y { get; set; } = 0;
     public int spawnX { get; set; } = 0;
@@ -23,6 +24,46 @@ public class Asteroid
     public int BoundaryBottom { get; } = 695;
     public int HitBox { get; set; } = 25;
 
+    public void RandomCreation(int seed)
+    {
+        Random rand = new Random(seed);
+        List<string> possibleMovements = new List<string> { "Diagonal", "Down", "Up", "Left", "Right" };
+        string randomMovement = possibleMovements[rand.Next(possibleMovements.Count)];
+
+        switch(randomMovement)
+        {
+            case "Diagonal":
+                ImagePath = "asteroid-1.svg";
+                X = BoundaryRight;
+                Y = rand.Next(BoundaryTop, BoundaryBottom/2);
+                break;
+            case "Down":
+                ImagePath = "asteroid-3.svg";
+                X = rand.Next(BoundaryLeft, BoundaryRight);
+                Y = BoundaryTop;
+                break;
+            case "Up":
+                ImagePath = "asteroid-2.svg";
+                X = rand.Next(BoundaryLeft, BoundaryRight);
+                Y = BoundaryBottom;
+                break;
+            case "Left":
+                ImagePath = "asteroid-2.svg";
+                X = BoundaryRight;
+                Y = rand.Next(BoundaryTop, BoundaryBottom);
+                break;
+            case "Right":
+                ImagePath = "asteroid-2.svg";
+                X = BoundaryLeft;
+                Y = rand.Next(BoundaryTop, BoundaryBottom);
+                break;
+            default:
+                break;
+        }
+        spawnX = X;
+        spawnY = Y;
+        Movement = randomMovement;
+    }
     public void Damage()
     {
         Health -= 10;

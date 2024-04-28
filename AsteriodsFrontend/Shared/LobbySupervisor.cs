@@ -44,7 +44,14 @@ namespace Actors.UserActors
                     logger.LogError("Didn't find lobby to stand back up");
                 }
             });
-
+            Receive<StopActorMessage>((l) =>
+            {
+                var existingLobby = Lobbies.Find(g => g.Id == l.LobbyId);
+                if(existingLobby != null)
+                {
+                    existingLobby.ActorRef.Forward(l);
+                }
+            });
 
             Receive<NewLobbyObject>(NewLobby =>
             {
@@ -79,7 +86,22 @@ namespace Actors.UserActors
                     Console.WriteLine(ex.ToString());
                 }
             });
-
+            Receive<MoveEvent>((MoveEvent) =>
+            {
+                var existingUser = Lobbies.Find(g => g.Id == MoveEvent.lobbyId);
+                if (existingUser != null)
+                {
+                    existingUser.ActorRef.Forward(MoveEvent);
+                }
+            });
+            Receive<Lazer>((lazer) =>
+            {
+                var existingUser = Lobbies.Find(g => g.Id == lazer.lobbyId);
+                if (existingUser != null)
+                {
+                    existingUser.ActorRef.Forward(lazer);
+                }
+            });
             Receive<GameLobby>(CreadtedLobby =>
             {
                 TalkToGateway(CreadtedLobby);

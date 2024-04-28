@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Shared;
 
 namespace Actors.UserActors
 {
@@ -39,8 +40,18 @@ namespace Actors.UserActors
             {
                 newLobbySupervisor.Forward(lobbies);
             });
-
-
+            Receive<MoveEvent>((MoveEvent) =>
+            {
+                newLobbySupervisor.Forward(MoveEvent);
+            });
+            Receive<Lazer>((lazer) =>
+            {
+                newLobbySupervisor.Forward(lazer);
+            });
+            Receive<StopActorMessage>((poison) =>
+            {
+                newLobbySupervisor.Forward(poison);
+            });
         }
     }
 

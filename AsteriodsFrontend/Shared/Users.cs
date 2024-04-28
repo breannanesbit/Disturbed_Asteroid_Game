@@ -25,17 +25,27 @@ namespace Actors.UserActors
         public User HeadPlayer { get; set; }
         public GameState CurrentState { get; set; }
         public List<User> Players { get; set; } = new List<User>();
+        public List<User> DeadPlayers { get; set; } = new List<User>();
+        public List<Asteroid> Asteroids { get; set; }
+        public List<Lazer> Lazers { get; set; }
+        public List<PowerUp> PowerUps { get; set; }
     }
 
 
     public class User
     {
         public string Username { get; set; }
+        public int Points { get; set; } = 0;
         public string Path { get; set; }
         public string hubConnection { get; set; }
         public Ship Ship { get; set; } = new();
     }
-
+    public class MoveEvent
+    {
+        public ShipMoves ShipMoves { get; set; }
+        public User user { get; set; }
+        public Guid lobbyId { get; set; }
+    }
     public class NewLobbyObject
     {
         public string username { get; set; }
