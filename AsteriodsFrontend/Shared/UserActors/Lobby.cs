@@ -127,10 +127,6 @@ namespace Actors.UserActors
                     Sender.Tell(CurrentLobby.CurrentState);
                 }
             });
-            Receive<User>(user =>
-            {
-                
-            });
 
             Receive<DecreaseUserHealth>(userHealth =>
             {

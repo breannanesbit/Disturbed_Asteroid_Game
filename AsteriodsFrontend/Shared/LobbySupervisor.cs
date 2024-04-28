@@ -27,7 +27,7 @@ namespace Actors.UserActors
             _httpClient = new HttpClient();
 
 
-            Receive<Terminated>(t =>
+            Receive<Terminated>(async t =>
             {
 
                 var lobby = Lobbies.Find(l => l.ActorRef == t.ActorRef);
@@ -42,6 +42,25 @@ namespace Actors.UserActors
                 else
                 {
                     logger.LogError("Didn't find lobby to stand back up");
+                    /*try
+                    {
+                        Console.WriteLine("in talk to gateway");
+                        var response = await _httpClient.GetAsync($"http://asteriodsapi:8080/Gateway/newValu.)
+
+
+                        var kp = new KeyValue
+                        {
+                            key = lobby.Id.ToString(),
+                            value = serializedLobby
+                        };
+
+                        _httpClient.PostAsJsonAsync($"http://asteriodsapi:8080/Gateway/newValue", kp);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error from talktogateway method: {ex.Message}");
+                    }*/
                 }
             });
             Receive<StopActorMessage>((l) =>
