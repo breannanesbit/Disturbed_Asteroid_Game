@@ -1,5 +1,7 @@
 ﻿using Akka.Actor;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Shared;
 using Shared.Metrics;
 
 namespace Actors.UserActors
@@ -14,6 +16,7 @@ namespace Actors.UserActors
     {
         private Timer timer;
         private Timer powerTimer;
+        private Timer asteroidTimer;
         private int powerupTic = 0;
         private int seed = Guid.NewGuid().GetHashCode();
         //if poweruptic is 0 then powerup can be made else none can be created.
@@ -61,6 +64,8 @@ namespace Actors.UserActors
                         moveEvent.user.Ship.moveRight();
                         break;
                 }
+                Ship ship = moveEvent.user.Ship;
+                AddPointsToShip(1,ship);
                 Sender.Tell(CurrentLobby);
 
             });
@@ -68,25 +73,36 @@ namespace Actors.UserActors
             {
                 CurrentLobby.Lazers.Add(lazer);
             });
-            Receive<ChangeGameState>(state =>
+            Receive<ChangeGameState>(async state =>
             {
                 if (CurrentLobby.HeadPlayer.Username == state.user)
                 {
                     logger.LogInformation($"Changing {state.lobbyId} state");
                     //CurrentLobby = state.lobby;
                     CurrentLobby.CurrentState = state.lobbyState;
+
+                    AddPowerUp(seed);
+
+                    asteroidTimer = new Timer(async (_) =>
+                    {
+                        await AddAsteroid();
+                    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(3));
                     timer = new Timer(async (_) =>
                     {
                         await MoveAsteroids(CurrentLobby.HeadPlayer.Ship);
                         await MoveLazers();
-                        await MovePowerups(CurrentLobby.HeadPlayer.Ship);
-                        //await AddPointsToShip();//input
+                        if(CurrentLobby.PowerUps.Count != 0)
+                        {
+                            await MovePowerups(CurrentLobby.HeadPlayer.Ship);
+                        }
                     }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
 
                     Sender.Tell(CurrentLobby.CurrentState);
                 }
                 if(CurrentLobby.CurrentState == GameState.Over)
                 {
+                    //add game points to users points
+                    CurrentLobby.HeadPlayer.Points += CurrentLobby.HeadPlayer.Ship.Points;
                     timer.Dispose();
                 }
             });
@@ -176,7 +192,6 @@ namespace Actors.UserActors
                     state.Damage(10);
                 }
                 //check each ship to see if its been hit by an asteroid.
-                //could just move and check on the front end.
             }
         }
         public async Task MoveLazers()
@@ -273,8 +288,9 @@ namespace Actors.UserActors
                     key = lobby.Id.ToString(),
                     value = serializedLobby
                 };
-
-
+            }
+            catch { }
+        }
 
         public static Props Props() =>
             Akka.Actor.Props.Create(() => new LobbyActor(new LoggerFactory().CreateLogger<LobbyActor>()));
