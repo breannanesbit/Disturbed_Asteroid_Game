@@ -1,9 +1,6 @@
 ﻿using Akka.Actor;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Shared;
 using Shared.Metrics;
-using System.Net.Http.Json;
 
 namespace Actors.UserActors
 {
@@ -11,13 +8,11 @@ namespace Actors.UserActors
 
     public class LobbyActor : ReceiveActor
     {
-        private readonly HttpClient _httpClient;
         private readonly ILogger<LobbyActor> logger;
 
         public GameLobby CurrentLobby { get; set; } = new GameLobby();
         public LobbyActor(ILogger<LobbyActor> logger)
         {
-            _httpClient = new HttpClient();
 
             Receive<Lobby>((lobby) =>
             {
@@ -33,7 +28,6 @@ namespace Actors.UserActors
                     CurrentLobby.Players.Add(CurrentLobby.HeadPlayer);
                 }
 
-                TalkToGateway(lobby);
                 Console.WriteLine($"Created a new state");
 
                 Sender.Tell(CurrentLobby);
@@ -92,27 +86,7 @@ namespace Actors.UserActors
         }
 
 
-        public void TalkToGateway(Lobby lobby)
-        {
-            try
-            {
-                var serializedLobby = JsonConvert.SerializeObject(lobby);
 
-
-                var kp = new KeyValue
-                {
-                    key = lobby.Id.ToString(),
-                    value = serializedLobby
-                };
-
-                _httpClient.PostAsJsonAsync($"http://asteriodsapi:2010/Gateway/newValue", kp);
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
 
         public static Props Props() =>
             Akka.Actor.Props.Create(() => new LobbyActor(new LoggerFactory().CreateLogger<LobbyActor>()));

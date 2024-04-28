@@ -1,7 +1,10 @@
 ﻿using Akka.Actor;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Shared;
 using Shared.Metrics;
 using Shared.SignalRService;
+using System.Net.Http.Json;
 
 namespace Actors.UserActors
 {
@@ -11,6 +14,8 @@ namespace Actors.UserActors
 
         private List<Lobby> Lobbies { get; set; }
         public IActorRef SignalRActor { get; }
+        private readonly HttpClient _httpClient;
+
 
         public LobbySupervisor(ActorSignalRService signalRService, ILogger<LobbySupervisor> logger)
         {
@@ -19,6 +24,8 @@ namespace Actors.UserActors
 
             this.logger = logger;
             Lobbies = new List<Lobby>();
+            _httpClient = new HttpClient();
+
 
             Receive<Terminated>(t =>
             {
@@ -75,6 +82,7 @@ namespace Actors.UserActors
 
             Receive<GameLobby>(CreadtedLobby =>
             {
+                TalkToGateway(CreadtedLobby);
                 logger.LogInformation($"made it to call to signalR actor {SignalRActor.Path}");
                 Console.WriteLine($"made it to call to signalR actor {SignalRActor.Path}");
                 SignalRActor.Tell(CreadtedLobby);
@@ -125,6 +133,29 @@ namespace Actors.UserActors
                     //existingUser.ActorRef.Tell(duh);
                 }
             });
+        }
+
+        public void TalkToGateway(GameLobby lobby)
+        {
+            try
+            {
+                Console.WriteLine("in talk to gateway");
+                var serializedLobby = JsonConvert.SerializeObject(lobby);
+
+
+                var kp = new KeyValue
+                {
+                    key = lobby.Id.ToString(),
+                    value = serializedLobby
+                };
+
+                _httpClient.PostAsJsonAsync($"http://asteriodsapi:8080/Gateway/newValue", kp);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error from talktogateway method: {ex.Message}");
+            }
         }
         //public static Props Props() =>
         //    Akka.Actor.Props.Create(() => new LobbySupervisor());

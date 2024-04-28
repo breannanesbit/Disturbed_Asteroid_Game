@@ -27,6 +27,7 @@ public class Election
 
     public Election(List<string> urls, ILogger<Election> logger)
     {
+        Console.WriteLine("made it to the election node");
         this.httpClient = new HttpClient();
 
         //set id
@@ -45,7 +46,6 @@ public class Election
 
         startTimer = new System.Timers.Timer(timer);
         startTimer.Elapsed += CheckState;
-        startTimer.Interval = 1000;
         startTimer.Start();
     }
 
@@ -85,46 +85,71 @@ public class Election
 
     public void ResetTimers()
     {
-        timer = random.Next(150, 300);
+        timer = random.Next(300, 800);
     }
     public void CheckState(object? sender, ElapsedEventArgs e)
     {
+        startTimer.Stop();
         Console.WriteLine("started in check state");
-        while (true)
-        {
-            CheckWhatToDoWithTheStateAsync();
-        }
+        CheckWhatToDoWithTheStateAsync().Wait();
+        //while (true)
+        //{
+        //    CheckWhatToDoWithTheStateAsync();
+        //}
     }
+
 
     public async Task CheckWhatToDoWithTheStateAsync()
     {
-        Thread.Sleep(timer);
-        switch (CurrentState)
+        while (true)
         {
-            case State.Follower:
-                CurrentState = State.Candidate;
-                break;
-            case State.Candidate:
-                StartAnElectionAsync();
-                break;
-            case State.Leader:
-                await SendOutHeartbeatAsync("regular heartbeat", "-1", NodeId);
-                break;
+            Console.WriteLine("In check what to do with the state");
+            Thread.Sleep(timer);
+            switch (CurrentState)
+            {
+                case State.Follower:
+                    CurrentState = State.Candidate;
+                    break;
+                case State.Candidate:
+                    await StartAnElectionAsync();
+                    break;
+                case State.Leader:
+                    await SendOutHeartbeatAsync("regular heartbeat", "-1", NodeId);
+                    break;
+            }
+            Console.WriteLine($"current state {CurrentState}");
         }
     }
 
     public async Task StartAnElectionAsync()
     {
+        Console.WriteLine("Started an election");
         //increase the term 
         CurrentTerm++;
         //current node votes for themself
         int voteCount = 0;
         //record the votes
 
-        foreach (var nodes in Urls)
+        foreach (var nodeUrl in Urls)
         {
-            var Voted = await httpClient.GetFromJsonAsync<bool>($"{nodes}/getVotes/{NodeId}");
+            bool Voted = false;
+            try
+            {
+                // Remove any unwanted characters from the URL, such as double quotes
+                var cleanNodeUrl = nodeUrl.Trim('"');
 
+                Console.WriteLine($"Attempting to get votes from node: {cleanNodeUrl}");
+                var fullUrl = $"{cleanNodeUrl}/Node/getVotes/{NodeId}/{CurrentTerm}";
+                Console.WriteLine($"Full URL: {fullUrl}");
+
+                Voted = await httpClient.GetFromJsonAsync<bool>(fullUrl);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting votes from node: {nodeUrl}, Error: {ex.Message}");
+            }
+
+            Console.WriteLine($"vote {Voted}");
             if (Voted)
             {
                 voteCount++;
@@ -143,29 +168,36 @@ public class Election
 
     public async Task<int> SendOutHeartbeatAsync(string key, string value, Guid CurrentLeader)
     {
+        Console.WriteLine($"Got a heart beat from {CurrentLeader}");
         int success = 0;
         foreach (var nodes in Urls)
         {
-            if (nodes != null)
+            try
             {
-                var beat = new HeartbeatInfo()
+                var node = nodes.Trim('"');
+                if (node != null)
                 {
-                    CurrentTerm = CurrentTerm,
-                    LeaderId = CurrentLeader,
-                    Value = value,
-                    key = key,
-                };
+                    var beat = new HeartbeatInfo()
+                    {
+                        CurrentTerm = CurrentTerm,
+                        LeaderId = CurrentLeader,
+                        Value = value,
+                        key = key,
+                    };
 
-                var response = await httpClient.GetFromJsonAsync<bool>($"{nodes}/heartbeat/from/{beat}");
+                    var response = await httpClient.GetFromJsonAsync<bool>($"{node}/Node/heartbeat/from/{beat}");
 
-                if (response)
-                {
-                    success++;
+                    if (response)
+                    {
+                        success++;
+                    }
+
+                    ResetTimers();
                 }
-
-                ResetTimers();
-
-
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
         return success;
@@ -214,7 +246,9 @@ public class Election
         int leaderInt = 0;
         foreach (var node in Urls)
         {
-            var SameLeader = await httpClient.GetFromJsonAsync<bool>($"{node}/compareleader/{NodeId}");
+            var nodes = node.Trim('"');
+
+            var SameLeader = await httpClient.GetFromJsonAsync<bool>($"{nodes}/Node/compareleader/{NodeId}");
             if (SameLeader)
             {
                 leaderInt++;
