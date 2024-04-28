@@ -44,7 +44,14 @@ namespace Actors.UserActors
                     logger.LogError("Didn't find lobby to stand back up");
                 }
             });
-
+            Receive<StopActorMessage>((l) =>
+            {
+                var existingLobby = Lobbies.Find(g => g.Id == l.LobbyId);
+                if(existingLobby != null)
+                {
+                    existingLobby.ActorRef.Forward(l);
+                }
+            });
 
             Receive<NewLobbyObject>(NewLobby =>
             {

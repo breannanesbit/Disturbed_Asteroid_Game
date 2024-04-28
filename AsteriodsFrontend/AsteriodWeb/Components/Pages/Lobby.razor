@@ -189,6 +189,11 @@
     }
     private void HandleLobbyDown()
     {
-        
+        StopActorMessage lobby = new StopActorMessage()
+            {
+                LobbyId = Lobby1.Game.Id,
+            };
+        akkaService.Tell(lobby);
     }
+
 }

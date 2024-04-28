@@ -48,8 +48,10 @@ namespace Actors.UserActors
             {
                 newLobbySupervisor.Forward(lazer);
             });
-
-
+            Receive<StopActorMessage>((poison) =>
+            {
+                newLobbySupervisor.Forward(poison);
+            });
         }
     }
 

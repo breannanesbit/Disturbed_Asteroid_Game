@@ -46,6 +46,10 @@ namespace Actors.UserActors
 
                 Sender.Tell(CurrentLobby);
             });
+            Receive<StopActorMessage>((pill) =>
+            {
+                Self.Tell(PoisonPill.Instance);
+            });
             Receive<MoveEvent>((moveEvent) =>
             {
                 // handle movement of ship
@@ -94,10 +98,10 @@ namespace Actors.UserActors
                         if(CurrentLobby.PowerUps.Count != 0)
                         {
                             await MovePowerups(CurrentLobby.HeadPlayer.Ship);
+                            Sender.Tell(CurrentLobby.CurrentState);
                         }
                     }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
 
-                    Sender.Tell(CurrentLobby.CurrentState);
                 }
                 if(CurrentLobby.CurrentState == GameState.Over)
                 {
