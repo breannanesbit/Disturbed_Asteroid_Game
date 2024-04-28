@@ -1,14 +1,36 @@
 version: '3.4'
 
 services:
-  nginx:
-    image: nginx:latest
-    ports:
-      - "80:80"
+  # nginx:
+  #   image: nginx:latest
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./ops/nginx.conf:/etc/nginx/nginx.conf
+  #   networks:
+  #     - raft_network
+  
+  swag:
+    image: lscr.io/linuxserver/swag
+    restart: unless-stopped
+    cap_add:
+        - NET_ADMIN
+    environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=America/Denver
+        - SubDomains=wildcard 
+        - URL=asteroidsgame.duckdns.org
+        - VALIDATION=duckdns
+        - DUCKDNSTOKEN=${DUCKDNSTOKEN}
+        - STAGING=true
     volumes:
-      - ./ops/nginx.conf:/etc/nginx/nginx.conf
+        - ./ops/nginx.conf:/config/nginx/site-confs/default.conf # new part
+        - swag_data:/config
+    ports:
+        - 443:443 
     networks:
-      - raft_network
+       - raft_network
   
   asteriodclient1:
     build:
@@ -29,7 +51,7 @@ services:
             }
           }
           cluster {
-            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
+            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551", "akka.tcp://akka-universe@asteriodclient2:2551"]
             roles = ["userSession"]
           }
         }
@@ -55,7 +77,7 @@ services:
              }
            }
            cluster {
-             seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
+             seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551", "akka.tcp://akka-universe@asteriodclient2:2551"]
              roles = ["userSession"]
            }
          }
@@ -66,6 +88,8 @@ services:
     build:
       context: .
       dockerfile: Actor/Dockerfile
+    ports:
+       - "4535:8080"
     environment:
       AKKA_CLUSTER: |
        akka {
@@ -79,7 +103,7 @@ services:
             }
           }
           cluster {
-            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551"]
+            seed-nodes = ["akka.tcp://akka-universe@asteriodclient1:2551", "akka.tcp://akka-universe@asteriodclient2:2551"]
             roles = ["lobby"]
           }
         }
@@ -147,7 +171,8 @@ services:
       - "9090:9090"
     volumes:
       # - ./prometheus:/etc/prometheus
-      - ./ops/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
+      - ./ops/pro.yml:/etc/prometheus/prometheus.yml
+
     networks:
       - raft_network
 
@@ -169,7 +194,6 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./provisioning:/etc/grafana/provisioning
       - ./ops/loki1.yml:/etc/grafana/provisioning/datasources/ds.yaml
       - ./ops/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yaml
     depends_on:
@@ -187,10 +211,11 @@ services:
   #     - ./ops/collector-config.yaml:/etc/otel-collector/config.yaml
   otel-collector:
     image: otel/opentelemetry-collector
+    ports:
+      - "4317:4317"
     volumes:
       - ./ops/collector-config.yaml:/etc/otel-collector-config.yaml
     command: ["--config", "/etc/otel-collector-config.yaml"]
-
     networks:
       - raft_network
 
@@ -204,4 +229,6 @@ services:
 
 networks:
   raft_network:
-  
+ 
+volumes:
+  swag_data:

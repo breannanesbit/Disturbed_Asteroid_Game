@@ -10,13 +10,22 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var nodes = Environment.GetEnvironmentVariable("NODES")?.Split(',')?.ToList() ?? [];
+Console.WriteLine(nodes[1]);
 
-builder.Services.AddSingleton(serviceProvider =>
-{
-    var logger = serviceProvider.GetRequiredService<ILogger<Election>>();
-    return new Election(nodes, logger);
+var logFactory = new LoggerFactory();
+var logger = logFactory.CreateLogger<Election>();
 
-});
+var election = new Election(nodes, logger);
+builder.Services.AddSingleton<Election>(election);
+
+
+//builder.Services.AddSingleton<Election>(serviceProvider =>
+//{
+//    var logger = serviceProvider.GetRequiredService<ILogger<Election>>();
+//    return new Election(nodes, logger);
+
+//});
+
 
 builder.Services.AddCors(options =>
 {

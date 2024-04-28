@@ -2,17 +2,19 @@
 @using Actors.UserActors
 @using Akka.Actor
 @using Microsoft.AspNetCore.SignalR.Client
+@using Newtonsoft.Json
 @using Shared
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
-@inject ILogger<TalkToActor> Logger // Inject ILogger here
+@inject ILogger<TalkToActor> Logger 
+@inject SignalRFrontendService signalRservice
 
 
 <h3>Enter Username and then can be added to a Lobby</h3>
-
-    <label for="usernameid">Username</label>
-<input id="usernameid" class="form-control" @bind="key" /> 
+<label for="usernameid">Username</label>
+<InputText id="usernameid" class="form-control" @bind-Value="key" @oninput="ValidateInput" />
+<span class="text-danger">@validationMessage</span>
 <button class="btn btn-primary" @onclick="SendKey">Send</button>
 
 @if (!string.IsNullOrEmpty(response.Username))
@@ -35,16 +37,40 @@
 @code {
     private string key = "";
     private User response = new();
-    private HubConnection? hubConnection;
     private GameLobby GotSingalRMessage = new();
     private List<Actors.UserActors.Lobby> lobbies = new();
+    private string validationMessage;
+    private User u = new();
 
 
+    private void ValidateInput(ChangeEventArgs e)
+    {
+        string inputValue = e.Value.ToString();
+
+        // Regular expression to match only alphanumeric characters
+        if (!System.Text.RegularExpressions.Regex.IsMatch(inputValue, "^[a-zA-Z0-9]*$"))
+        {
+            validationMessage = "Username must contain only letters and numbers.";
+        }
+        // Character length validation
+        else if (inputValue.Length > 15) // Adjust the character length limit as needed
+        {
+            validationMessage = "Username cannot exceed 15 characters.";
+        }
+        else
+        {
+            validationMessage = null;
+        }
+    }
 
     private async Task SendKey()
     {
+        await signalRservice.IsConnectedAsync();
+        Logger.LogInformation($"Hub connection: {signalRservice.hubConnection.ConnectionId}");
+
+        Logger.LogInformation("sending user name");
         Console.WriteLine("Made it to sendKey");
-        var u = new User() { Username= key};
+        u = new User() { Username = key, hubConnection = signalRservice.hubConnection.ConnectionId };
 
         // Obtain a reference to the router actor
         var result = await akkaService.Ask<User>(u);
@@ -54,7 +80,7 @@
 
     private async Task CreateANewLobby()
     {
-        var hubc = hubConnection?.ConnectionId;
+        var hubc = signalRservice.hubConnection?.ConnectionId;
         var nl = new NewLobbyObject() { username = key, hubConnection = hubc };
 
 
@@ -67,25 +93,30 @@
 
     protected override async Task OnInitializedAsync()
     {
-        hubConnection = new HubConnectionBuilder()
-        //.WithUrl("http://172.31.0.5/ComunicationHub")
-        .WithUrl("http://asteriodsweb.localhost/ComunicationHub")
-            //.WithUrl("http://signalrapi:8080/ComunicationHub")
-            .Build();
 
-        hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
+        signalRservice.hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
         {
 
             Logger.LogInformation("Made it to receive gamelobby object");
             GotSingalRMessage = message;
-            NavigationManager.NavigateTo($"/LobbyStartPage?lobby={GotSingalRMessage}");
+
+            var userToGame = new UserInAGame()
+            {
+                user = u,
+                Game = GotSingalRMessage,
+            };
+
+            var userToGameJson = JsonConvert.SerializeObject(userToGame);
+
+            // Append the serialized object as a route parameter to the URL
+            NavigationManager.NavigateTo($"/LobbyStartPage/{Uri.EscapeDataString(userToGameJson)}");
             StateHasChanged();
         });
 
-        hubConnection.On<AllLobbies>("GetAllLobbies", (lobbie) =>
+        signalRservice.hubConnection.On<AllLobbies>("GetAllLobbies", (lobbie) =>
         {
             Console.WriteLine("Client side");
-            Logger.LogInformation("Got all lobbies");
+            Logger.LogInformation($"Got all lobbies {lobbie.Lobbies}");
             lobbies = lobbie.Lobbies;
             StateHasChanged();
         });
@@ -93,20 +124,11 @@
 
         Console.WriteLine("Before start up");
 
-        try
-        {
-            await hubConnection.StartAsync();
-            Console.WriteLine($"Connection Id : {hubConnection.ConnectionId}");
-            Logger.LogInformation("Connection made it");
-        }
-        catch(Exception ex)
-        {
-            Logger.LogError(ex.Message);
-        }
-
-        
-
-        var getlobbies = new AllLobbies();
+        var getlobbies = new AllLobbies()
+            {
+                hubConnection = signalRservice.hubConnection.ConnectionId,
+                Lobbies = new(),
+            };
 
         akkaService.Tell(getlobbies);
 
@@ -122,13 +144,6 @@
 
         akkaService.Tell(addNewUser);
     }
-
-    // Dispose the hub connection when component is disposed
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection != null)
-            await hubConnection.DisposeAsync();
-    } 
 
 }
 

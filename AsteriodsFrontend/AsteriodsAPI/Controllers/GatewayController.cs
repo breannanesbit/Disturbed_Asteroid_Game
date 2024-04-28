@@ -41,6 +41,7 @@ public class GatewayController : ControllerBase
     [HttpPost("newValue")]
     public async Task AddNewValue(KeyValue pair)
     {
+        Console.WriteLine("added a new value in the gateway");
         await _gateway.WriteAsync(pair.key, pair.value);
     }
 

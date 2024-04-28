@@ -1,5 +1,7 @@
-﻿using Actors.UserActors;
+﻿using Actors;
+using Actors.UserActors;
 using Akka.Actor;
+using Shared.SignalRService;
 
 public class UserSupervisor : ReceiveActor
 {
@@ -8,9 +10,11 @@ public class UserSupervisor : ReceiveActor
 
     private readonly IActorRef newLobbySupervisor;
 
-    public UserSupervisor(IActorRef SignalRActor, IActorRef newLobbySupervisor)
+    public UserSupervisor(ActorSignalRService signalRService, IActorRef newLobbySupervisor)
     {
-        this.SignalRActor = SignalRActor;
+        var props = Props.Create(() => new SignalRActor(signalRService));
+        this.SignalRActor = Context.ActorOf(props, "signalRActor");
+
         this.newLobbySupervisor = newLobbySupervisor;
         UserActors = new List<UsersActorInfo>();
 
@@ -43,7 +47,7 @@ public class UserSupervisor : ReceiveActor
             if (existingUser != null)
             {
                 newLobbySupervisor.Tell(NewLobby);
-                SignalRActor.Tell(NewLobby.username);
+                //SignalRActor.Tell(NewLobby.username);
 
                 var c = new ChangeUserState() { ChangedState = UserState.Playing };
 

@@ -67,6 +67,7 @@ namespace RaftAPI
         [HttpGet("getVotes/{guid}/{currentTerm}")]
         public bool GetVotes(Guid guid, int currentTerm)
         {
+            Console.WriteLine($"get votes from {guid}");
             if (_nodeService.CurrentState != State.Unhealthy && _nodeService.CurrentTerm <= currentTerm)
             {
                 return _nodeService.VoteForTheCurrentTerm(currentTerm, guid);

@@ -14,6 +14,7 @@
    <PackageReference Include="Akka.Bootstrap.Docker" Version="0.5.3" />
     <PackageReference Include="Akka.DependencyInjection" Version="1.5.19" />
 		  <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+		  <PackageReference Include="OpenTelemetry" Version="1.8.1" />
 
   </ItemGroup>
 

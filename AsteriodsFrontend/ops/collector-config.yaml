@@ -2,13 +2,20 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
 
 exporters:
   otlp:
-    endpoint: " http://otel-collector:4317" # e.g.,
+    endpoint: "http://otel-collector:4317" # e.g.,
 
   zipkin:
     endpoint: "http://zipkin:9411/api/v2/spans" # Assuming Zipkin is running in another container
+  
+  prometheus:
+    endpoint: 0.0.0.0:9090
+ 
+  otlphttp:
+    endpoint: http://loki:3100/otlp
 
 service:
   pipelines:
@@ -18,7 +25,16 @@ service:
 
     metrics:
       receivers: [otlp]
-      exporters: [otlp]
+      processors: [batch]
+      exporters: [prometheus]
+
+    logs:
+      receivers: [otlp]
+      exporters: [otlphttp]
+
 
 extensions:
   health_check: {}
+
+processors:
+  batch:

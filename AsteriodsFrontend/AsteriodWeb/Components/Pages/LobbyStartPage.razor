@@ -1,29 +1,40 @@
-﻿@page "/LobbyStartPage"
+﻿@page "/LobbyStartPage/{LobbyDatastring}"
+@using Newtonsoft.Json
 @using Actors.UserActors
 @using Shared;
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
+@inject SignalRFrontendService signalRservice
+@inject ILogger<TalkToActor> Logger
+
 
 
 @* <h3>Lobby: @Lobby1.Id</h3>
 <button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button> *@
 <div class="row">
     <h3 class="col">Lobby: 2</h3>
-    <button class=" col btn btn-outline-success">Start Game</button> 
+    @if(LobbyData.user.Username == LobbyData.Game.HeadPlayer.Username)
+    {
+        <button class=" col btn btn-outline-success" @onclick="ChangeGameState">Start Game</button>
+    }
 </div>
 
 <div class="row">
     <div class="col">
         <h5 class="text-decoration-underline">Players</h5>
         <ul>
-            @foreach (var player in Players)
+            @if(LobbyData != null)
             {
-                <li>@player.UserName: 
-                <AsteriodWeb.Components.Ships.ShipDisplay Color="@player.SpaceShip.ShipColor" ShipNumber="@player.SpaceShip.ShipImage" />
-                </li>
+                @foreach (var player in LobbyData.Game.Players)
+                {
+                    <li>@player.Username: 
+                    <AsteriodWeb.Components.Ships.ShipDisplay Color="@player.Ship.ShipColor" ShipNumber="@player.Ship.ShipImage" />
+                    </li>
 
+                }
+                
             }
         </ul>
     </div>
@@ -69,12 +80,12 @@
     private void ColorSelected(string color)
     {
         Console.WriteLine("color selected", color);
-        var currentPlayer = Players.FirstOrDefault(p => p.UserName == "Player 1");
+        var currentPlayer = LobbyData.Game.Players.FirstOrDefault(p => p.Username == LobbyData.user.Username);
 
         if (currentPlayer != null)
         {
-            currentPlayer.SpaceShip.ShipColor = color;
-            currentPlayer.SpaceShip.OriginalColor = color;
+            currentPlayer.Ship.ShipColor = color;
+            currentPlayer.Ship.OriginalColor = color;
             SelectedColor = color;
             StateHasChanged();
             //currentPlayer.SpaceShip.color = color;
@@ -83,71 +94,58 @@
     private void ShipClicked(int image)
     {
         Console.WriteLine("selected image:",image);
-        var currentPlayer = Players.FirstOrDefault(p => p.UserName == "Player 1");
+        var currentPlayer = LobbyData.Game.Players.FirstOrDefault(p => p.Username == LobbyData.user.Username);
         if(currentPlayer != null)
         {
-            currentPlayer.SpaceShip.ShipImage = image;
+            currentPlayer.Ship.ShipImage = image;
             StateHasChanged();
         }
     }
-    public class User
+
+
+
+    [Parameter]
+    public string LobbyDatastring { get; set; }
+    public UserInAGame LobbyData { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
     {
-        public string UserName { get; set; }
-        public Ship SpaceShip { get; set; }
-    }
+        await signalRservice.IsConnectedAsync();
 
-    private List<User> Players = new List<User>()
-    {
-      new User { UserName = "Player 1", SpaceShip = new Ship()},
-      new User { UserName = "Player 2", SpaceShip = new Ship()},
-      new User { UserName = "Player 3", SpaceShip = new Ship()},
-      new User { UserName = "Player 4", SpaceShip = new Ship()},
+        var lobbyDataJson = Uri.UnescapeDataString(LobbyDatastring); // Decode URL-encoded JSON string
+        LobbyData = JsonConvert.DeserializeObject<UserInAGame>(lobbyDataJson);
+        Console.WriteLine($"Count of players form lobbystartpage { LobbyData?.Game.Players.Count}");
 
-    }
-
-    ;
-
-     /* [Parameter]
-     public GameLobby Lobby1 { get; set; }
-     private HubConnection? hubConnection;
-
-
-     protected override async Task OnInitializedAsync()
-         {
-         hubConnection = new HubConnectionBuilder()
-             .WithUrl("http://signalrapi:8000/ComunicationHub")
-             //.WithUrl("http://localhost:32772/ComunicationHub")
-         .Build();
-
-         hubConnection.On<GameState>("GameStarted", (message) =>
-             {
-             if(message == GameState.Playing)
-                 {
-                 //navigate to the lobby game page
-         }
+        signalRservice.hubConnection.On<GameLobby>("GameStarted", (message) =>
+            {
+                if(message.CurrentState == GameState.Playing)
+                {
+                    //navigate to the lobby game page
+                    Logger.LogInformation($"made to to start the game");
+                    LobbyData.Game = message;
+                    var serlData = JsonConvert.SerializeObject(LobbyData);
+                    NavigationManager.NavigateTo($"/lobby?Lobby1={Uri.EscapeDataString(serlData)}");
+             }
 
          });
 
-         await hubConnection.StartAsync();
      }
 
      // Dispose the hub connection when component is disposed
-     public async ValueTask DisposeAsync()
-         {
-         if (hubConnection != null)
-             await hubConnection.DisposeAsync();
-     }
+     
 
      private async Task ChangeGameState()
         {
         var cgs = new ChangeGameState
                  {
-                 user = Lobby1.HeadPlayer.Username,
-                 lobbyId = Lobby1.Id,
+                 user = LobbyData.Game.HeadPlayer.Username,
+                lobbyId = LobbyData.Game.Id,
+                lobby = LobbyData.Game,
                  lobbyState = GameState.Playing
          };
          var result = await akkaService.Ask<ChangeGameState>(cgs);
 
-    }*/
+    }
 }
 

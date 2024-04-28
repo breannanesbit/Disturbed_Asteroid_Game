@@ -1,3 +1,4 @@
+using AsteriodWeb;
 using AsteriodWeb.Components;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -7,6 +8,7 @@ using Serilog.Exceptions;
 using Serilog.Sinks.Grafana.Loki;
 using Serilog.Sinks.Loki;
 using Shared;
+using Shared.Metrics;
 using Shared.SignalRService;
 using System.Reflection;
 
@@ -33,10 +35,17 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation()
         //.AddConsoleExporter()
         .AddOtlpExporter())
-    .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation()
-        .AddRuntimeInstrumentation()
+    .WithMetrics(metrics => metrics
+        .AddMeter(DefineMetrics.lobbyMeterName)
+        .AddAspNetCoreInstrumentation()
+        // .AddRuntimeInstrumentation()
         //.AddConsoleExporter()
-        .AddOtlpExporter());
+        .AddOtlpExporter(o =>
+        {
+            o.Endpoint = new Uri("http://otel-collector:4317/");
+        })
+        .AddPrometheusExporter()
+        );
 
 builder.Host.UseSerilog((context, loggerConfig) =>
 {
@@ -56,6 +65,8 @@ builder.Host.UseSerilog((context, loggerConfig) =>
 // });
 builder.Services.AddSingleton<IActorBridge, AkkaService>();
 builder.Services.AddSingleton<ActorSignalRService>();
+builder.Services.AddSingleton<SignalRFrontendService>();
+
 
 // // starts the IHostedService, which creates the ActorSystem and actors
 builder.Services.AddHostedService<AkkaService>(sp => (AkkaService)sp.GetRequiredService<IActorBridge>());
@@ -65,7 +76,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-
+app.MapPrometheusScrapingEndpoint();
 
 app.UseStaticFiles();
 app.UseAntiforgery();

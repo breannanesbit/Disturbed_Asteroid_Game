@@ -61,6 +61,7 @@ namespace Actors.UserActors
     {
         public string user { get; set; }
         public GameState lobbyState { get; set; }
+        public GameLobby lobby { get; set; }
         public Guid lobbyId { get; set; }
     }
 
@@ -80,6 +81,8 @@ namespace Actors.UserActors
     public class AllLobbies
     {
         public List<Lobby> Lobbies { get; set; }
+        public string hubConnection { get; set; }
+
     }
 
 
@@ -90,5 +93,10 @@ namespace Actors.UserActors
         public Guid LobbyId { get; set; }
     }
 
+    public class UserInAGame
+    {
+        public User user { get; set; }
+        public GameLobby Game { get; set; }
+    }
 
 }

@@ -1,8 +1,12 @@
-﻿@page "/lobby"
+﻿@page "/lobby/{LobbyDatastring}"
 @using Actors.UserActors
+@using Newtonsoft.Json
 @using Shared
 @inject IActorBridge akkaService
 @rendermode InteractiveServer
+@inject SignalRFrontendService signalRservice
+@inject ILogger<Lobby> Logger
+
 <PageTitle>Lobby</PageTitle>
 
 <div class="row">
@@ -49,6 +53,15 @@
 </div>
 
 @code {
+
+    [Parameter]
+    public UserInAGame Lobby1 { get; set; }
+    public string LobbyDatastring { get; set; }
+
+    private List<Asteroid> asteroids = new List<Asteroid>();
+    private List<Lazer> lazers = new List<Lazer>();
+    private List<Powerup> powerups = new List<Powerup>();
+    private Ship state = new Ship();
     private bool isBoxClicked = false;
     private string boxClass => isBoxClicked ? "lobby-body border border-success" : "lobby-body border border-light";
     private Timer timer;
@@ -64,6 +77,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await signalRservice.IsConnectedAsync();
+
+        var lobbyDataJson = Uri.UnescapeDataString(LobbyDatastring); // Decode URL-encoded JSON string
+        Lobby1 = JsonConvert.DeserializeObject<UserInAGame>(lobbyDataJson);
+
         await InitializeAsteroids();
 
         timer = new Timer(async (_) => 
