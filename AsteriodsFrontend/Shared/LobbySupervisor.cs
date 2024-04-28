@@ -90,6 +90,7 @@ namespace Actors.UserActors
 
             Receive<ChangeGameState>(state =>
             {
+                Console.WriteLine($"In lobbySub to change game state");
                 var existingUser = Lobbies.Find(g => g.Id == state.lobbyId);
                 if (existingUser != null)
                 {

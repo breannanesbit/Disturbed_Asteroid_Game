@@ -112,12 +112,12 @@
     protected override async Task OnInitializedAsync()
     {
         await signalRservice.IsConnectedAsync();
-
+        Console.WriteLine(signalRservice.hubConnection.ConnectionId);
         var lobbyDataJson = Uri.UnescapeDataString(LobbyDatastring); // Decode URL-encoded JSON string
         LobbyData = JsonConvert.DeserializeObject<UserInAGame>(lobbyDataJson);
         Console.WriteLine($"Count of players form lobbystartpage { LobbyData?.Game.Players.Count}");
 
-        signalRservice.hubConnection.On<GameLobby>("GameStarted", (message) =>
+        signalRservice.hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
             {
                 if(message.CurrentState == GameState.Playing)
                 {
@@ -125,7 +125,7 @@
                     Logger.LogInformation($"made to to start the game");
                     LobbyData.Game = message;
                     var serlData = JsonConvert.SerializeObject(LobbyData);
-                    NavigationManager.NavigateTo($"/lobby?Lobby1={Uri.EscapeDataString(serlData)}");
+                    NavigationManager.NavigateTo($"/lobby/{Uri.EscapeDataString(serlData)}");
              }
 
          });
@@ -144,7 +144,7 @@
                 lobby = LobbyData.Game,
                  lobbyState = GameState.Playing
          };
-         var result = await akkaService.Ask<ChangeGameState>(cgs);
+         akkaService.Tell(cgs);
 
     }
 }
