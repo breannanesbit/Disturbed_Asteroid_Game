@@ -15,7 +15,12 @@
 <label for="usernameid">Username</label>
 <InputText id="usernameid" class="form-control" @bind-Value="key" @oninput="ValidateInput" />
 <span class="text-danger">@validationMessage</span>
+
+@if(validationMessage == null)
+{
 <button class="btn btn-primary" @onclick="SendKey">Send</button>
+    
+}
 
 @if (!string.IsNullOrEmpty(response.Username))
 {
@@ -39,7 +44,7 @@
     private User response = new();
     private GameLobby GotSingalRMessage = new();
     private List<Actors.UserActors.Lobby> lobbies = new();
-    private string validationMessage;
+    private string? validationMessage = null;
     private User u = new();
 
 
