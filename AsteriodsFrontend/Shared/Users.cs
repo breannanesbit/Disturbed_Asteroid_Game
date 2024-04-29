@@ -103,4 +103,12 @@ namespace Actors.UserActors
         public GameLobby Game { get; set; }
     }
 
+    public class UserAndGameId
+    {
+        public User user { get; set; }
+        public Guid LobbyId { get; set; }
+    }
+
+
+
 }

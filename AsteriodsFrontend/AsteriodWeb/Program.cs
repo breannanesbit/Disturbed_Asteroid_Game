@@ -66,6 +66,7 @@ builder.Host.UseSerilog((context, loggerConfig) =>
 builder.Services.AddSingleton<IActorBridge, AkkaService>();
 builder.Services.AddSingleton<ActorSignalRService>();
 builder.Services.AddSingleton<SignalRFrontendService>();
+builder.Services.AddSingleton<LobbyDataService>();
 
 
 // // starts the IHostedService, which creates the ActorSystem and actors

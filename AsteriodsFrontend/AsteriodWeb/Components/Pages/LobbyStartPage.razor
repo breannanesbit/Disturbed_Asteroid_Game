@@ -7,6 +7,7 @@
 @rendermode InteractiveServer
 @inject IActorBridge akkaService
 @inject SignalRFrontendService signalRservice
+@inject LobbyDataService LobbyDataService
 @inject ILogger<TalkToActor> Logger
 
 
@@ -127,7 +128,16 @@
                     //navigate to the lobby game page
                     Logger.LogInformation($"made to to start the game");
                     LobbyData.Game = message;
-                    var serlData = JsonConvert.SerializeObject(LobbyData);
+
+                    LobbyDataService.SetLobbyData(LobbyData.Game.Id, LobbyData.Game);
+
+                    var userToLobby = new UserAndGameId()
+                    {
+                        user = LobbyData.user,
+                        LobbyId = LobbyData.Game.Id
+                    };
+
+                    var serlData = JsonConvert.SerializeObject(userToLobby);
                     NavigationManager.NavigateTo($"/lobby/{Uri.EscapeDataString(serlData)}");
              }
 

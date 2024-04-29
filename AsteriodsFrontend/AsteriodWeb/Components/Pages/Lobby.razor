@@ -6,12 +6,13 @@
 @inject IActorBridge akkaService
 @rendermode InteractiveServer
 @inject SignalRFrontendService signalRservice
+@inject LobbyDataService LobbyDataService
 @inject ILogger<Lobby> Logger
 
 <PageTitle>Lobby</PageTitle>
 
 <div class="row">
-    <p class="col col-5">State: @(Lobby1.Game.CurrentState)</p>
+    <p class="col col-5">State: @(gameLobby.CurrentState)</p>
     <p class="col">Points: @Lobby1.user.Ship.Points</p>
     <button type="button" class="btn btn-danger col" @onclick="HandleLobbyDown">Take Down Lobby</button>
 </div>
@@ -60,8 +61,8 @@
 
     [Parameter]
     public string LobbyDatastring { get; set; }
-    public UserInAGame Lobby1 { get; set; }
-
+    public UserAndGameId Lobby1 { get; set; }
+    public GameLobby gameLobby { get; set; }
     private List<Asteroid> asteroids;
     private List<Lazer> lazers;
     private List<PowerUp> powerups;
@@ -80,13 +81,15 @@
         await signalRservice.IsConnectedAsync();
 
         var lobbyDataJson = Uri.UnescapeDataString(LobbyDatastring); // Decode URL-encoded JSON string
-        Lobby1 = JsonConvert.DeserializeObject<UserInAGame>(lobbyDataJson);
+        Lobby1 = JsonConvert.DeserializeObject<UserAndGameId>(lobbyDataJson);
 
-        asteroids = Lobby1.Game.Asteroids;
-        lazers = Lobby1.Game.Lazers;
-        powerups = Lobby1.Game.PowerUps;
-        shipsAlive = Lobby1.Game.Players;
-        ShipsDead = Lobby1.Game.DeadPlayers;
+        gameLobby = LobbyDataService.GetLobbyData(Lobby1.LobbyId);
+
+        asteroids = gameLobby.Asteroids;
+        lazers = gameLobby.Lazers;
+        powerups = gameLobby.PowerUps;
+        shipsAlive = gameLobby.Players;
+        ShipsDead = gameLobby.DeadPlayers;
         lazerCount = lazers.Count(l => l.user.Username == Lobby1.user.Username);
 
         timer = new Timer(async (_) => 
@@ -100,14 +103,16 @@
             if (message.CurrentState == GameState.Playing)
             {
                 Console.WriteLine("Got message Playing from signalR");
-                Lobby1.Game = message;
+                gameLobby = message;
 
             }
         });
     }
     private async Task HandleSendMove()
     {
-        var newMove = Moves.Last();
+        if (Moves.Any())
+        {
+            var newMove = Moves.Last();
         var ship = Lobby1.user.Ship;
         if(newMove != Lobby1.user.Ship.Move)
         {
@@ -166,6 +171,7 @@
             }
             Moves.Remove(newMove);
         }
+        }
     }
     public async Task HandleKeyPress(KeyboardEventArgs e)
     {
@@ -204,7 +210,7 @@
     {
         StopActorMessage lobby = new StopActorMessage()
             {
-                LobbyId = Lobby1.Game.Id,
+                LobbyId = gameLobby.Id,
             };
         akkaService.Tell(lobby);
     }
