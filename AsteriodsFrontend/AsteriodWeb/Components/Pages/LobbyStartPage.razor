@@ -14,7 +14,8 @@
 @* <h3>Lobby: @Lobby1.Id</h3>
 <button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button> *@
 <div class="row">
-    <h3 class="col">Lobby: 2</h3>
+    <h3 class="col">Lobby: @LobbyData.Game.Id</h3>
+    <p>@LobbyData.Game.CurrentState</p>
     @if(LobbyData.user.Username == LobbyData.Game.HeadPlayer.Username)
     {
         <button class=" col btn btn-outline-success" @onclick="ChangeGameState">Start Game</button>

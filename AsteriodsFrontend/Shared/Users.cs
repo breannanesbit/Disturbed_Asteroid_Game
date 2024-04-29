@@ -26,11 +26,15 @@ namespace Actors.UserActors
         public GameState CurrentState { get; set; }
         public List<User> Players { get; set; } = new List<User>();
         public List<User> DeadPlayers { get; set; } = new List<User>();
-        public List<Asteroid> Asteroids { get; set; }
-        public List<Lazer> Lazers { get; set; }
-        public List<PowerUp> PowerUps { get; set; }
+        public List<Asteroid> Asteroids { get; set; } = new List<Asteroid>();
+        public List<Lazer> Lazers { get; set; } = new List<Lazer>();
+        public List<PowerUp> PowerUps { get; set; } = new List<PowerUp>();
     }
 
+    public class UpdateGame
+    {
+        public GameLobby lobby { get; set; }
+    }
 
     public class User
     {

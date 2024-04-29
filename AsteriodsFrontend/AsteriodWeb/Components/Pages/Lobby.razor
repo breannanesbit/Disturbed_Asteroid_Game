@@ -1,5 +1,6 @@
 ﻿@page "/lobby/{LobbyDatastring}"
 @using Actors.UserActors
+@using Microsoft.AspNetCore.SignalR.Client
 @using Newtonsoft.Json
 @using Shared
 @inject IActorBridge akkaService
@@ -73,6 +74,7 @@
     private int lazerCount = 0;
     private int seed = Guid.NewGuid().GetHashCode();
 
+
     protected override async Task OnInitializedAsync()
     {
         await signalRservice.IsConnectedAsync();
@@ -91,6 +93,17 @@
         {
             await HandleSendMove();
         }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
+
+        signalRservice.hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
+        {
+            Console.WriteLine($"Message state is: {message.CurrentState}");
+            if (message.CurrentState == GameState.Playing)
+            {
+                Console.WriteLine("Got message Playing from signalR");
+                Lobby1.Game = message;
+
+            }
+        });
     }
     private async Task HandleSendMove()
     {

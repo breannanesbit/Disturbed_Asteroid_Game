@@ -135,6 +135,7 @@ namespace Actors.UserActors
                 var existingUser = Lobbies.Find(g => g.Id == state.lobbyId);
                 if (existingUser != null)
                 {
+                    Console.WriteLine($"Lobby was found");
                     existingUser.ActorRef.Tell(state);
                 }
             });

@@ -16,13 +16,16 @@ namespace Actors.UserActors
     {
         private Timer timer;
         private Timer powerTimer;
-        private Timer asteroidTimer;
+        private int asteroidTic = 0;
         private int powerupTic = 0;
         private int seed = Guid.NewGuid().GetHashCode();
+        private UpdateGame gameUpdate = new UpdateGame();
+        private bool isLooping = false;
         //if poweruptic is 0 then powerup can be made else none can be created.
 
         private readonly HttpClient _httpClient;
         private readonly ILogger<LobbyActor> logger;
+        private ICancelable gameLoopCancel;
 
         public GameLobby CurrentLobby { get; set; } = new GameLobby();
         public LobbyActor(ILogger<LobbyActor> logger)
@@ -79,6 +82,8 @@ namespace Actors.UserActors
             });
             Receive<ChangeGameState>(async state =>
             {
+                Console.WriteLine($"Made it to the lobby");
+                Console.WriteLine($"The User is {state.user}");
                 if (CurrentLobby.HeadPlayer.Username == state.user)
                 {
                     logger.LogInformation($"Changing {state.lobbyId} state to {state.lobbyState}");
@@ -87,27 +92,24 @@ namespace Actors.UserActors
 
                     AddPowerUp(seed);
 
-                    asteroidTimer = new Timer(async (_) =>
+                    /*timer = new Timer(async (_) =>
                     {
-                        await AddAsteroid();
-                    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(3));
-                    timer = new Timer(async (_) =>
+                        Console.WriteLine("Anotehr iteration of the game timer");
+                        await UpdateGame();
+                    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));*/
+                    UpdateGame();
+                    if(!isLooping) //so it only gets called once.
                     {
-                        await MoveAsteroids(CurrentLobby.HeadPlayer.Ship);
-                        await MoveLazers();
-                        if(CurrentLobby.PowerUps.Count != 0)
-                        {
-                            await MovePowerups(CurrentLobby.HeadPlayer.Ship);
-                            Sender.Tell(CurrentLobby.CurrentState);
-                        }
-                    }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
-
+                        gameUpdate.lobby = CurrentLobby;
+                        Self.Tell(gameUpdate);// call update game
+                    }
                 }
                 if(CurrentLobby.CurrentState == GameState.Over)
                 {
                     //add game points to users points
+                    gameLoopCancel.Cancel();
                     CurrentLobby.HeadPlayer.Points += CurrentLobby.HeadPlayer.Ship.Points;
-                    timer.Dispose();
+                    Context.Parent.Tell(CurrentLobby.CurrentState);
                 }
             });
 
@@ -126,6 +128,23 @@ namespace Actors.UserActors
                     // Reply with the updated lobby state
                     Sender.Tell(CurrentLobby.CurrentState);
                 }
+            });
+
+            Receive<UpdateGame>(game =>
+            {
+                isLooping = true;
+                //every time the timespan goes off call updategame method
+                gameLoopCancel = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(
+                    TimeSpan.FromSeconds(0),
+                    TimeSpan.FromSeconds(0.05),
+                    Self,
+                    new ChangeGameState {
+                        user = CurrentLobby.HeadPlayer.Username,
+                        lobbyState = CurrentLobby.CurrentState,
+                        lobbyId = CurrentLobby.Id,
+                        lobby = CurrentLobby
+                    },
+                    Self);
             });
 
             Receive<DecreaseUserHealth>(userHealth =>
@@ -153,13 +172,40 @@ namespace Actors.UserActors
             });
             this.logger = logger;
         }
-
+        public async Task UpdateGame()
+        {
+            if (asteroidTic == 60)
+            {
+                Console.WriteLine("another iteration of the asteroid timer");
+                await AddAsteroid();
+                Console.WriteLine("Made it back to asteroids timer");
+            }
+            if (CurrentLobby != null && CurrentLobby.Asteroids.Count != 0)
+            {
+                Console.WriteLine("Moving asteroids");
+                await MoveAsteroids(CurrentLobby.HeadPlayer.Ship);
+            }
+            if (CurrentLobby.Lazers.Count != 0)
+            {
+                Console.WriteLine("Moving Lazers");
+                await MoveLazers();
+            }
+            if (CurrentLobby.PowerUps.Count != 0)
+            {
+                await MovePowerups(CurrentLobby.HeadPlayer.Ship);
+            }
+            Console.WriteLine("Sending current state to sender");
+            asteroidTic += 1;
+            Context.Parent.Tell(CurrentLobby);
+        }
         public async Task AddAsteroid()// could input how many should be made and loop over.
         {
             int seed = Guid.NewGuid().GetHashCode();
             Asteroid NewAsteroid = new Asteroid();
             NewAsteroid.RandomCreation(seed);
+            Console.WriteLine("Adding a new Asteroid");
             CurrentLobby.Asteroids.Add(NewAsteroid);
+            Console.WriteLine("Was able to add asteroid");
         }
         public async Task AddLazer(int x, int y, int angle)
         {
@@ -168,6 +214,8 @@ namespace Actors.UserActors
             {
                 x= x, y = y, Angle = angle
             };
+            Console.WriteLine("Adding a new Lazer");
+
             CurrentLobby.Lazers.Add(NewLazer);
             
         }
@@ -175,6 +223,8 @@ namespace Actors.UserActors
         {
             PowerUp powerup = new PowerUp();
             powerup.PowerUpCreation(seed);
+            Console.WriteLine("Adding a new Powerup");
+
             CurrentLobby.PowerUps.Add(powerup);
         }
         public async Task MoveAsteroids(Ship state)
@@ -269,6 +319,7 @@ namespace Actors.UserActors
             else
             {
                 state.TogglePowerup(false);
+                AddPowerUp(seed);
                 powerTimer.Dispose();
             }
         }
