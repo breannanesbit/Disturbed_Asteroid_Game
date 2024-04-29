@@ -9,9 +9,14 @@ namespace SignalRAPI
         {
             Console.WriteLine($"in hub : {message.HeadPlayer.hubConnection}");
 
-            var client = Clients.Client(message.HeadPlayer.hubConnection);
-            Console.WriteLine($"hub connection: {client}");
-            await client.SendAsync("ReceiveMessage", message);
+
+            foreach(User player in message.Players)
+            {
+                var client = Clients.Client(player.hubConnection);
+                Console.WriteLine($"hub connection: {client}");
+                await client.SendAsync("ReceiveMessage", message);
+
+            }
         }
 
         public async Task StartGame(GameState message)

@@ -14,6 +14,7 @@ namespace Actors
 
             Receive<GameLobby>(message =>
             {
+
                 signalRService.SendGameLobby(message).PipeTo(
                     recipient: Self,
                     success: () =>
