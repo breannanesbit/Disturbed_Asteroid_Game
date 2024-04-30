@@ -30,6 +30,55 @@ namespace AstoridsTest
         //    // Assert that the response contains the actor's path
         //    Assert.StartsWith("akka://MyTestSystem/user/worker", response);
         //}
+
+        [Fact]
+        public void LobbyActor_CanReceiveLobbyMessage()
+        {
+            using var system = ActorSystem.Create("TestSystem");
+            var logger = new LoggerFactory().CreateLogger<LobbyActor>();
+            var lobbyActor = system.ActorOf(Props.Create(() => new LobbyActor(logger)));
+
+            var lobby = new Lobby { HeadPlayer = new User { Username = "TestUser" }, Id = Guid.NewGuid() };
+
+            lobbyActor.Tell(lobby);
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            Assert.NotNull(response);
+            Assert.Equal("TestUser", response.HeadPlayer.Username);
+        }
+
+        [Fact]
+        public void LobbyActor_CanReceiveStopActorMessage()
+        {
+            using var system = ActorSystem.Create("TestSystem");
+            var logger = new LoggerFactory().CreateLogger<LobbyActor>();
+            var lobbyActor = system.ActorOf(Props.Create(() => new LobbyActor(logger)));
+
+            Assert.NotNull(lobbyActor);
+        }
+
+        [Fact]
+        public void LobbyActor_CanHandleMoveEvent()
+        {
+            using var system = ActorSystem.Create("TestSystem");
+            var logger = new LoggerFactory().CreateLogger<LobbyActor>();
+            var lobbyActor = system.ActorOf(Props.Create(() => new LobbyActor(logger)));
+
+            var user = new User { Username = "TestUser" };
+            var lobby = new Lobby { HeadPlayer = user, Id = Guid.NewGuid() };
+
+            lobbyActor.Tell(lobby);
+            ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var moveEvent = new MoveEvent { user = user, ShipMoves = ShipMoves.Forward };
+
+            lobbyActor.Tell(moveEvent);
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            Assert.NotNull(response);
+            Assert.Equal(1, response.HeadPlayer.Ship.Points); // Assuming points increase after a move
+        }
+
         [Fact]
         public void GetAllTheLobbies()
         {
@@ -394,7 +443,7 @@ namespace AstoridsTest
             var user = new User() { Username = username };
             var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
 
-            var message =new MoveEvent()
+            var message = new MoveEvent()
             {
                 lobbyId = response.Id,
                 user = user,
@@ -402,13 +451,13 @@ namespace AstoridsTest
             };
 
             newLobbySupervisor.Tell(message);
-            
+
             var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
 
             int X = 100;
             int Y = 100 - 10;
             Assert.Equal(X, response2.HeadPlayer.Ship.x);
-            Assert.Equal(Y ,response2.HeadPlayer.Ship.y);
+            Assert.Equal(Y, response2.HeadPlayer.Ship.y);
         }
         [Fact]
         public void PlayerCanSendMovementBackwardToActors()

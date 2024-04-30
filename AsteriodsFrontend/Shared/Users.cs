@@ -84,13 +84,14 @@ namespace Actors.UserActors
     public class AddUserToLobby
     {
         public string username { get; set; }
+        public string hubConnection { get; set; }
         public Guid lobbyId { get; set; }
 
     }
 
     public class AllLobbies
     {
-        public List<Lobby> Lobbies { get; set; }
+        public List<Guid> LobbiesIds { get; set; }
         public string hubConnection { get; set; }
 
     }

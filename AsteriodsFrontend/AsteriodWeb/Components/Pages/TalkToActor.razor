@@ -28,8 +28,8 @@
     {
         @foreach(var l in lobbies)
         {
-            <p>@l.Id</p>
-            <button class="btn btn-primary" @onclick="() => JoinLobby(l.Id)">Join Lobby</button>
+            <p>@l</p>
+            <button class="btn btn-primary" @onclick="() => JoinLobby(l)">Join Lobby</button>
         }
     }
 
@@ -43,10 +43,10 @@
     private string key = "";
     private User response = new();
     private GameLobby GotSingalRMessage = new();
-    private List<Actors.UserActors.Lobby> lobbies = new();
+    private List<Guid> lobbies = new();
     private string? validationMessage = null;
     private User u = new();
-
+    private Guid clickedLobbyId = Guid.NewGuid();
 
     private void ValidateInput(ChangeEventArgs e)
     {
@@ -98,52 +98,62 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await signalRservice.IsConnectedAsync();
+
+        var getlobbies = new AllLobbies()
+            {
+                hubConnection = signalRservice.hubConnection.ConnectionId,
+                LobbiesIds = new(),
+            };
+
+        akkaService.Tell(getlobbies);
 
         signalRservice.hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
         {
+            if(message.Id == clickedLobbyId || message.HeadPlayer.Username == u.Username)
+            {
+                Logger.LogInformation("Made it to receive gamelobby object");
+                GotSingalRMessage = message;
 
-            Logger.LogInformation("Made it to receive gamelobby object");
-            GotSingalRMessage = message;
-
-            var userToGame = new UserInAGame()
+                var userToGame = new UserInAGame()
             {
                 user = u,
                 Game = GotSingalRMessage,
             };
 
-            var userToGameJson = JsonConvert.SerializeObject(userToGame);
+                var userToGameJson = JsonConvert.SerializeObject(userToGame);
 
-            // Append the serialized object as a route parameter to the URL
-            NavigationManager.NavigateTo($"/LobbyStartPage/{Uri.EscapeDataString(userToGameJson)}");
-            StateHasChanged();
+                // Append the serialized object as a route parameter to the URL
+                NavigationManager.NavigateTo($"/LobbyStartPage/{Uri.EscapeDataString(userToGameJson)}");
+                StateHasChanged();
+
+            }
+
         });
 
         signalRservice.hubConnection.On<AllLobbies>("GetAllLobbies", (lobbie) =>
         {
             Console.WriteLine("Client side");
-            Logger.LogInformation($"Got all lobbies {lobbie.Lobbies}");
-            lobbies = lobbie.Lobbies;
+            Logger.LogInformation($"Got all lobbies {lobbie.LobbiesIds.Count}");
+            lobbies = lobbie.LobbiesIds;
             StateHasChanged();
         });
 
 
         Console.WriteLine("Before start up");
 
-        var getlobbies = new AllLobbies()
-            {
-                hubConnection = signalRservice.hubConnection.ConnectionId,
-                Lobbies = new(),
-            };
 
-        akkaService.Tell(getlobbies);
 
     }
 
     public void JoinLobby(Guid id)
     {
+        Console.WriteLine("in joinLobby method");
+        clickedLobbyId = id;
         var addNewUser = new AddUserToLobby()
             {
                 username = key,
+                hubConnection = signalRservice.hubConnection.ConnectionId,
                 lobbyId = id,
             };
 

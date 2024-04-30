@@ -60,7 +60,8 @@ public class ActorSignalRService
     {
         if (await IsConnectedAsync())
         {
-            hubConnection.SendAsync("AllLobbiesSend", lobbies);
+            Console.WriteLine("In signalR service for getting all lobbies");
+            await hubConnection.SendAsync("AllLobbiesSend", lobbies);
         }
     }
 }

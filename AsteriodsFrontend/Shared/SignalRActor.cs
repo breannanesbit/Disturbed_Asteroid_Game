@@ -24,7 +24,7 @@ namespace Actors
                     },
                     failure: _ex =>
                     {
-                        Console.WriteLine("failure");
+                        Console.WriteLine($"failure: {_ex.Message}");
                         return new SignalRErrorMessage
                         {
                             Message = $"error: {_ex.Message}"
@@ -67,7 +67,7 @@ namespace Actors
                     },
                     failure: _ex =>
                     {
-                        Console.WriteLine("failure");
+                        Console.WriteLine($"failure: {_ex.Message}");
                         return new SignalRErrorMessage
                         {
                             Message = $"error: {_ex.Message}"
