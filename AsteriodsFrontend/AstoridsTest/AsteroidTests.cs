@@ -106,6 +106,7 @@ public class AsteroidTests : TestKit
         Assert.Equal(y, asteroid.Y);
         Assert.Equal(x, asteroid.X);
     }
+
     [Fact]
     public void Asteroid_Can_Move_Diagonal2()
     {
