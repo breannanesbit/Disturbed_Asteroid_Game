@@ -28,6 +28,7 @@
     {
         @foreach(var l in lobbies)
         {
+            <p>List of Lobbies</p>
             <p>@l</p>
             <button class="btn btn-primary" @onclick="() => JoinLobby(l)">Join Lobby</button>
         }
