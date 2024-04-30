@@ -155,6 +155,10 @@
         AllPlayersReady();
         signalRservice.hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
             {
+                if (message.Id == LobbyData?.Game.Id)
+                {
+                    
+                
                 if(message.CurrentState == GameState.Playing)
                 {
                     //start count down on the page.
@@ -178,6 +182,7 @@
                     Console.WriteLine("Updating ships");
                     LobbyData.Game.Players = message.Players;
                     StateHasChanged();
+                }
                 }
             });
 

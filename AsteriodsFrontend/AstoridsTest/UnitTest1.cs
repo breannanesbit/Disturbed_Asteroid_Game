@@ -30,6 +30,64 @@ namespace AstoridsTest
         //    // Assert that the response contains the actor's path
         //    Assert.StartsWith("akka://MyTestSystem/user/worker", response);
         //}
+
+        [Fact]
+        public void LobbyActor_CanReceiveLobbyMessage()
+        {
+            using var system = ActorSystem.Create("TestSystem");
+            var logger = new LoggerFactory().CreateLogger<LobbyActor>();
+            var lobbyActor = system.ActorOf(Props.Create(() => new LobbyActor(logger)));
+
+            var lobby = new Lobby { HeadPlayer = new User { Username = "TestUser" }, Id = Guid.NewGuid() };
+
+            lobbyActor.Tell(lobby);
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            Assert.NotNull(response);
+            Assert.Equal("TestUser", response.HeadPlayer.Username);
+        }
+
+        [Fact]
+        public void LobbyActor_CanReceiveStopActorMessage()
+        {
+            using var system = ActorSystem.Create("TestSystem");
+            var logger = new LoggerFactory().CreateLogger<LobbyActor>();
+            var lobbyActor = system.ActorOf(Props.Create(() => new LobbyActor(logger)));
+
+            Assert.NotNull(lobbyActor);
+        }
+        [Fact]
+        public void useractorcanCreate()
+        {
+            using var system = ActorSystem.Create("TestSystem");
+            var logger = new LoggerFactory().CreateLogger<UserActor>();
+            var lobbyActor = system.ActorOf(Props.Create(() => new UserActor()));
+
+            Assert.NotNull(lobbyActor);
+        }
+
+        [Fact]
+        public void LobbyActor_CanHandleMoveEvent()
+        {
+            using var system = ActorSystem.Create("TestSystem");
+            var logger = new LoggerFactory().CreateLogger<LobbyActor>();
+            var lobbyActor = system.ActorOf(Props.Create(() => new LobbyActor(logger)));
+
+            var user = new User { Username = "TestUser" };
+            var lobby = new Lobby { HeadPlayer = user, Id = Guid.NewGuid() };
+
+            lobbyActor.Tell(lobby);
+            ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var moveEvent = new MoveEvent { user = user, ShipMoves = ShipMoves.Forward };
+
+            lobbyActor.Tell(moveEvent);
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            Assert.NotNull(response);
+            Assert.Equal(1, response.HeadPlayer.Ship.Points); // Assuming points increase after a move
+        }
+
         [Fact]
         public void GetAllTheLobbies()
         {
@@ -184,14 +242,14 @@ namespace AstoridsTest
             var newuser = new AddUserToLobby { username = "Test", lobbyId = lobby.Id };
             lobbyActor.Tell(newuser);
 
-            var response2 = ExpectMsg<GameState>(TimeSpan.FromSeconds(5));
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
 
             Assert.Equal(response.HeadPlayer.Username, username);
-            Assert.Equal(response2, GameState.Joining);
+            Assert.Equal(response2.CurrentState, GameState.Joining);
         }
 
         [Fact]
-        public void AddMultiplemoreUserToLobby()
+        public void AddMultiplemoreUserToLobby6()
         {
             var probe = CreateTestProbe();
             using var system = ActorSystem.Create("MyTestSystem");
@@ -209,16 +267,110 @@ namespace AstoridsTest
             var newuser = new AddUserToLobby { username = "bob", lobbyId = lobby.Id };
             lobbyActor.Tell(newuser);
 
-            var response2 = ExpectMsg<GameState>(TimeSpan.FromSeconds(5));
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
 
             var newuser2 = new AddUserToLobby { username = "sally", lobbyId = lobby.Id };
             lobbyActor.Tell(newuser2);
 
-            var response3 = ExpectMsg<GameState>(TimeSpan.FromSeconds(5));
+            var response3 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
 
             //Assert.Equal(response.HeadPlayer.Username, username);
-            Assert.Equal(response2, GameState.Joining);
-            Assert.Equal(response3, GameState.Joining);
+            Assert.Equal(response2.CurrentState, GameState.Joining);
+            Assert.Equal(response3.CurrentState, GameState.Joining);
+
+        }
+
+        [Fact]
+        public void AddMultiplemoreUserToLobby5()
+        {
+            var probe = CreateTestProbe();
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var lobbyActor = system.ActorOf(Props.Create<LobbyActor>(new LoggerFactory().CreateLogger<LobbyActor>()), "SignalRActor");
+
+            var username = "TomRiddle";
+            var user = new User() { Username = username, hubConnection = "test" };
+
+            var lobby = new Lobby { HeadPlayer = user, ActorRef = lobbyActor, Id = Guid.NewGuid() };
+
+            lobbyActor.Tell(lobby);
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var newuser = new AddUserToLobby { username = "bob", lobbyId = lobby.Id };
+            lobbyActor.Tell(newuser);
+
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var newuser2 = new AddUserToLobby { username = "sally", lobbyId = lobby.Id };
+            lobbyActor.Tell(newuser2);
+
+            var response3 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            //Assert.Equal(response.HeadPlayer.Username, username);
+            Assert.Equal(response2.CurrentState, GameState.Joining);
+            Assert.Equal(response3.CurrentState, GameState.Joining);
+
+        }
+        [Fact]
+        public void AddMultiplemoreUserToLobby4()
+        {
+            var probe = CreateTestProbe();
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var lobbyActor = system.ActorOf(Props.Create<LobbyActor>(new LoggerFactory().CreateLogger<LobbyActor>()), "SignalRActor");
+
+            var username = "TomRiddle";
+            var user = new User() { Username = username, hubConnection = "test" };
+
+            var lobby = new Lobby { HeadPlayer = user, ActorRef = lobbyActor, Id = Guid.NewGuid() };
+
+            lobbyActor.Tell(lobby);
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var newuser = new AddUserToLobby { username = "bob", lobbyId = lobby.Id };
+            lobbyActor.Tell(newuser);
+
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var newuser2 = new AddUserToLobby { username = "sally", lobbyId = lobby.Id };
+            lobbyActor.Tell(newuser2);
+
+            var response3 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            //Assert.Equal(response.HeadPlayer.Username, username);
+            Assert.Equal(response2.CurrentState, GameState.Joining);
+            Assert.Equal(response3.CurrentState, GameState.Joining);
+
+        }
+        [Fact]
+        public void AddMultiplemoreUserToLobby3()
+        {
+            var probe = CreateTestProbe();
+            using var system = ActorSystem.Create("MyTestSystem");
+
+            var lobbyActor = system.ActorOf(Props.Create<LobbyActor>(new LoggerFactory().CreateLogger<LobbyActor>()), "SignalRActor");
+
+            var username = "TomRiddle";
+            var user = new User() { Username = username, hubConnection = "test" };
+
+            var lobby = new Lobby { HeadPlayer = user, ActorRef = lobbyActor, Id = Guid.NewGuid() };
+
+            lobbyActor.Tell(lobby);
+            var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var newuser = new AddUserToLobby { username = "bob", lobbyId = lobby.Id };
+            lobbyActor.Tell(newuser);
+
+            var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            var newuser2 = new AddUserToLobby { username = "sally", lobbyId = lobby.Id };
+            lobbyActor.Tell(newuser2);
+
+            var response3 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
+
+            //Assert.Equal(response.HeadPlayer.Username, username);
+            Assert.Equal(response2.CurrentState, GameState.Joining);
+            Assert.Equal(response3.CurrentState, GameState.Joining);
 
         }
 
@@ -394,7 +546,7 @@ namespace AstoridsTest
             var user = new User() { Username = username };
             var response = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
 
-            var message =new MoveEvent()
+            var message = new MoveEvent()
             {
                 lobbyId = response.Id,
                 user = user,
@@ -402,13 +554,13 @@ namespace AstoridsTest
             };
 
             newLobbySupervisor.Tell(message);
-            
+
             var response2 = ExpectMsg<GameLobby>(TimeSpan.FromSeconds(5));
 
             int X = 100;
             int Y = 100 - 10;
             Assert.Equal(X, response2.HeadPlayer.Ship.x);
-            Assert.Equal(Y ,response2.HeadPlayer.Ship.y);
+            Assert.Equal(Y, response2.HeadPlayer.Ship.y);
         }
         [Fact]
         public void PlayerCanSendMovementBackwardToActors()

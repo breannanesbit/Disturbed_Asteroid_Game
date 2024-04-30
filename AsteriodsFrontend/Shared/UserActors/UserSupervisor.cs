@@ -59,16 +59,20 @@ public class UserSupervisor : ReceiveActor
 
         Receive<AddUserToLobby>(AddUserToLobby =>
         {
+            Console.WriteLine("in user sup for add user to Lobby");
             var existingUser = UserActors.Find(u => u.Username == AddUserToLobby.username);
 
-            if (existingUser == null)
+            if (existingUser != null)
             {
-                // If not, create a new UserActor and add it to the list
-                var newUserActor = Context.ActorOf(UserActor.Props(), AddUserToLobby.username);
-                UserActors.Add(new UsersActorInfo { Username = AddUserToLobby.username, ActorRef = newUserActor });
-                newUserActor.Tell(newUserActor);
+                var c = new ChangeUserState() { ChangedState = UserState.Playing };
 
+                existingUser.ActorRef.Forward(c);
+                Console.WriteLine("in user sup sending add user to the lobby sup");
                 newLobbySupervisor.Tell(AddUserToLobby);
+            }
+            else
+            {
+                Console.WriteLine("Didn't find a user");
             }
         });
     }

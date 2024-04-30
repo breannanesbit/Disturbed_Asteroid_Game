@@ -34,7 +34,9 @@ namespace Actors.UserActors
             });
             Receive<AddUserToLobby>((user) =>
             {
+                Console.WriteLine("in head for add user to lobby");
                 newUserSupervisor.Forward(user);
+                newLobbySupervisor.Forward(user);
             });
             Receive<AllLobbies>((lobbies) =>
             {

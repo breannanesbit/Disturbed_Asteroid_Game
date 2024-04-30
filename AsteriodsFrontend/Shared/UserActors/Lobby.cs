@@ -106,7 +106,7 @@ namespace Actors.UserActors
                     //CurrentLobby = state.lobby;
                     CurrentLobby.CurrentState = state.lobbyState;
 
-                    
+
 
                     /*timer = new Timer(async (_) =>
                     {
@@ -114,13 +114,13 @@ namespace Actors.UserActors
                         await UpdateGame();
                     }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));*/
                     await UpdateGame();
-                    if(!isLooping && CurrentLobby.CurrentState == GameState.Playing) //so it only gets called once.
+                    if (!isLooping && CurrentLobby.CurrentState == GameState.Playing) //so it only gets called once.
                     {
                         gameUpdate.lobby = CurrentLobby;
                         Self.Tell(gameUpdate);// call update game
                     }
                 }
-                if(CurrentLobby.CurrentState == GameState.Over)
+                if (CurrentLobby.CurrentState == GameState.Over)
                 {
                     //add game points to users points
                     gameLoopCancel.Cancel();
@@ -135,14 +135,15 @@ namespace Actors.UserActors
                 // Check if the user is already in the lobby
                 if (CurrentLobby.Players.Any(u => u.Username == state.username))
                 {
-                    Sender.Tell(CurrentLobby.CurrentState); // Reply with the current player count
+                    Sender.Tell(CurrentLobby); // Reply with the current player count
                 }
                 else
                 {
+                    logger.LogInformation($"new user {state.username} added to {CurrentLobby.Id}");
                     // Add the user to the lobby
-                    CurrentLobby.Players.Add(new User { Username = state.username });
+                    CurrentLobby.Players.Add(new User { Username = state.username, hubConnection = state.hubConnection });
                     // Reply with the updated lobby state
-                    Sender.Tell(CurrentLobby.CurrentState);
+                    Sender.Tell(CurrentLobby);
                 }
             });
 
@@ -154,7 +155,8 @@ namespace Actors.UserActors
                     TimeSpan.FromSeconds(0),
                     TimeSpan.FromSeconds(0.5),
                     Self,
-                    new ChangeGameState {
+                    new ChangeGameState
+                    {
                         user = CurrentLobby.HeadPlayer.Username,
                         lobbyState = CurrentLobby.CurrentState,
                         lobbyId = CurrentLobby.Id,
@@ -190,7 +192,7 @@ namespace Actors.UserActors
         }
         public async Task UpdateGame()
         {
-            if(powerupTic == 0 && CurrentLobby.PowerUps.Count == 0)
+            if (powerupTic == 0 && CurrentLobby.PowerUps.Count == 0)
             {
                 AddPowerUp(seed);
             }
@@ -235,12 +237,14 @@ namespace Actors.UserActors
             //check how many lazers each user has and that it doesn't go over 7
             Lazer NewLazer = new Lazer
             {
-                x= x, y = y, Angle = angle
+                x = x,
+                y = y,
+                Angle = angle
             };
             Console.WriteLine("Adding a new Lazer");
 
             CurrentLobby.Lazers.Add(NewLazer);
-            
+
         }
         public async Task AddPowerUp(int seed)
         {
@@ -252,11 +256,11 @@ namespace Actors.UserActors
         }
         public async Task MoveAsteroids(Ship state)
         {
-            for(int i = CurrentLobby.Asteroids.Count -1; i >= 0; i--)
+            for (int i = CurrentLobby.Asteroids.Count - 1; i >= 0; i--)
             {
                 var asteroid = CurrentLobby.Asteroids[i];
                 asteroid.Move();
-                if(asteroid.Health <= 0)
+                if (asteroid.Health <= 0)
                 {
                     CurrentLobby.Asteroids.Remove(asteroid);
                 }
@@ -269,32 +273,32 @@ namespace Actors.UserActors
         }
         public async Task MoveLazers()
         {
-            for(int i = CurrentLobby.Lazers.Count -1; i >= 0; i--)
+            for (int i = CurrentLobby.Lazers.Count - 1; i >= 0; i--)
             {
                 var lazer = CurrentLobby.Lazers[i];
                 var isNotOnBoard = lazer.Move();
-                if(isNotOnBoard)
+                if (isNotOnBoard)
                 {
                     CurrentLobby.Lazers.Remove(lazer);
                 }
                 bool colisionDetected = false;
-                for(int k = CurrentLobby.Asteroids.Count - 1; k >= 0; k--)
+                for (int k = CurrentLobby.Asteroids.Count - 1; k >= 0; k--)
                 {
                     var asteroid = CurrentLobby.Asteroids[k];
-                    if(asteroid.CheckBox(lazer.x, lazer.y))
+                    if (asteroid.CheckBox(lazer.x, lazer.y))
                     {
                         asteroid.Damage();
                         colisionDetected = true;
                         break;
                     }
                 }
-                if(colisionDetected)
+                if (colisionDetected)
                 { CurrentLobby.Lazers.Remove(lazer); }
             }
         }
         public async Task MovePowerups(Ship state)
         {
-            for(int i = CurrentLobby.PowerUps.Count -1;i >= 0; i--)
+            for (int i = CurrentLobby.PowerUps.Count - 1; i >= 0; i--)
             {
                 var powerUp = CurrentLobby.PowerUps[i];
                 powerUp.MoveLeft();
@@ -311,7 +315,7 @@ namespace Actors.UserActors
                     state.TogglePowerup(true);
                     StartPowerupTimer(state);
                     CurrentLobby.PowerUps.Remove(powerUp);
-                    
+
                 }
 
             }
@@ -321,7 +325,7 @@ namespace Actors.UserActors
             powerupTic = 0;
             powerTimer = new Timer(async (_) =>
             {
-                if (!state.HasPowerup) 
+                if (!state.HasPowerup)
                 {
                     powerTimer.Dispose();
                 }
@@ -346,7 +350,7 @@ namespace Actors.UserActors
                 powerTimer.Dispose();
             }
         }
-        private async Task AddPointsToShip(int points,Ship state)
+        private async Task AddPointsToShip(int points, Ship state)
         {
             state.Points += points;
         }

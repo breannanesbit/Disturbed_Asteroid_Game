@@ -66,7 +66,7 @@ namespace Actors.UserActors
             Receive<StopActorMessage>((l) =>
             {
                 var existingLobby = Lobbies.Find(g => g.Id == l.LobbyId);
-                if(existingLobby != null)
+                if (existingLobby != null)
                 {
                     existingLobby.ActorRef.Forward(l);
                 }
@@ -75,7 +75,7 @@ namespace Actors.UserActors
             Receive<ShipUpdate>((ship) =>
             {
                 var existingLobby = Lobbies.Find(g => g.Id == ship.lobbyId);
-                if(existingLobby != null)
+                if (existingLobby != null)
                 {
                     existingLobby.ActorRef.Forward(ship);
                 }
@@ -160,6 +160,7 @@ namespace Actors.UserActors
 
             Receive<AddUserToLobby>(state =>
             {
+                logger.LogInformation("in lobby sup for add user to lobby");
                 var existingUser = Lobbies.Find(g => g.Id == state.lobbyId);
                 if (existingUser != null)
                 {
@@ -171,9 +172,11 @@ namespace Actors.UserActors
             Receive<AllLobbies>(lobbies =>
             {
                 logger.LogInformation($"In lobby sup getting all lobbies");
+
                 var all = new AllLobbies()
                 {
-                    Lobbies = Lobbies,
+                    hubConnection = lobbies.hubConnection,
+                    LobbiesIds = Lobbies.Select(lobby => lobby.Id).ToList(),
                 };
                 SignalRActor.Tell(all);
                 Sender.Tell(Lobbies);
