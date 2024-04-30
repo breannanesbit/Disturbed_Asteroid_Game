@@ -95,7 +95,7 @@
         timer = new Timer(async (_) => 
         {
             await HandleSendMove();
-        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.5));
 
         signalRservice.hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
         {
@@ -109,7 +109,8 @@
                 powerups = gameLobby.PowerUps;
                 shipsAlive = gameLobby.Players;
                 ShipsDead = gameLobby.DeadPlayers;
-                Lobby1.user = message.Players.Find(p => p.Username == Lobby1.user.Username);
+                var user = message.Players.Find(p => p.Username == Lobby1.user.Username);
+                Lobby1.user = user;
                 lazerCount = lazers.Count(l => l.user.Username == Lobby1.user.Username);
                 InvokeAsync(StateHasChanged);
             }
@@ -131,6 +132,7 @@
                         {
                             ShipMoves = ShipMoves.Forward,
                             user = Lobby1.user,
+                            lobbyId = gameLobby.Id,
                         };
                     akkaService.Tell(w);
                     break;
@@ -139,6 +141,8 @@
                         {
                             ShipMoves = ShipMoves.Backward,
                             user = Lobby1.user,
+                            lobbyId = gameLobby.Id,
+
                         };
                     akkaService.Tell(s);
                     break;
@@ -149,6 +153,8 @@
                         {
                             ShipMoves = ShipMoves.Left,
                             user = Lobby1.user,
+                            lobbyId = gameLobby.Id,
+
                         };
                     akkaService.Tell(a);
                     break;
@@ -159,6 +165,8 @@
                         {
                             ShipMoves = ShipMoves.Right,
                             user = Lobby1.user,
+                            lobbyId = gameLobby.Id,
+
                         };
                     akkaService.Tell(d);
                     break;
@@ -169,6 +177,8 @@
                         var lazer = new Lazer
                             {
                                 //user id and lobby id
+                                lobbyId = gameLobby.Id,
+                                user = Lobby1.user,
                                 x = ship.x,
                                 y = ship.y,
                                 Angle = ship.Angle,

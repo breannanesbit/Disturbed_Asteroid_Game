@@ -55,30 +55,34 @@ namespace Actors.UserActors
             });
             Receive<MoveEvent>((moveEvent) =>
             {
+                Console.WriteLine($"movement got to the actor");
                 // handle movement of ship
-                switch(moveEvent.ShipMoves)
-                {
-                    case ShipMoves.Forward:
-                        moveEvent.user.Ship.moveForward();
-                        break;
-                    case ShipMoves.Backward:
-                        moveEvent.user.Ship.moveBackward();
-                        break;
-                    case ShipMoves.Left:
-                        moveEvent.user.Ship.moveLeft();
-                        break;
-                    case ShipMoves.Right:
-                        moveEvent.user.Ship.moveRight();
-                        break;
-                }
-                Ship ship = moveEvent.user.Ship;
-                AddPointsToShip(1,ship);
                 var player = CurrentLobby.Players.Find(p => p.Username == moveEvent.user.Username);
-                if(player == null)
+                if(player != null)
                 {
-                    player.Ship = ship;
+                    switch(moveEvent.ShipMoves)
+                    {
+                        case ShipMoves.Forward:
+                            moveEvent.user.Ship.moveForward();
+                            player.Ship = moveEvent.user.Ship;
+                            break;
+                        case ShipMoves.Backward:
+                            moveEvent.user.Ship.moveBackward();
+                            player.Ship = moveEvent.user.Ship;
+                            break;
+                        case ShipMoves.Left:
+                            moveEvent.user.Ship.moveLeft();
+                            player.Ship = moveEvent.user.Ship;
+                            break;
+                        case ShipMoves.Right:
+                            moveEvent.user.Ship.moveRight();
+                            player.Ship = moveEvent.user.Ship;
+                            break;
+                    }
+                    AddPointsToShip(1,player.Ship);
+                    Console.WriteLine($"The ship now after moving: {player.Ship}");
+                    Console.WriteLine($"the current player {player}");
                 }
-                Sender.Tell(CurrentLobby);
 
             });
             Receive<Lazer>((lazer) =>

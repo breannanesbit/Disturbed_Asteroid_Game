@@ -115,10 +115,14 @@ namespace Actors.UserActors
             });
             Receive<MoveEvent>((MoveEvent) =>
             {
-                var existingUser = Lobbies.Find(g => g.Id == MoveEvent.lobbyId);
-                if (existingUser != null)
+                Console.WriteLine("user move made it to lobby sup");
+                var existingLobby = Lobbies.Find(g => g.Id == MoveEvent.lobbyId);
+                Console.WriteLine($"user:{existingLobby}");
+
+                if (existingLobby != null)
                 {
-                    existingUser.ActorRef.Forward(MoveEvent);
+                    Console.WriteLine("lobby exists");
+                    existingLobby.ActorRef.Forward(MoveEvent);
                 }
             });
             Receive<Lazer>((lazer) =>
