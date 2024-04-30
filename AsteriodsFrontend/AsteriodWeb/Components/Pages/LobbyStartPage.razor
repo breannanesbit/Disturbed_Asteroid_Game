@@ -16,10 +16,14 @@
 <button class="btn btn-outline-success" onclick="ChangeGameState">Start Game</button> *@
 <div class="row">
     <h3 class="col">Lobby: @LobbyData.Game.Id</h3>
-    <p>@LobbyData.Game.CurrentState</p>
+    <p class="col">@LobbyData.Game.CurrentState</p>
     @if(LobbyData.user.Username == LobbyData.Game.HeadPlayer.Username)
     {
-        <button class=" col btn btn-outline-success" @onclick="ChangeGameState">Start Game</button>
+        <button class=" col btn btn-outline-success" @onclick="ChangeGameState" disabled="@(!AllPlayersReady())">Start Game</button>
+    }
+    @if(showTimer)
+    {
+        <h5 class="row text-danger">CountDown: @countdownSeconds</h5>
     }
 </div>
 
@@ -32,6 +36,20 @@
                 @foreach (var player in LobbyData.Game.Players)
                 {
                     <li>@player.Username: 
+                        @if(player.Ship.isReady)
+                        {
+                            <p class="text-success">Ready</p>
+                        }
+                        else if(player.Username == LobbyData.user.Username)
+                        { @if(!player.Ship.isReady)
+                            {
+                                <button class="col btn btn-info" @onclick="() => SignalReady()"> Ready</button> 
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-danger">Waiting for player</p>
+                        }
                     <AsteriodWeb.Components.Ships.ShipDisplay Color="@player.Ship.ShipColor" ShipNumber="@player.Ship.ShipImage" />
                     </li>
 
@@ -78,7 +96,8 @@
     };
 
     private string SelectedColor { get; set; }
-
+    private bool showTimer = false;
+    private int countdownSeconds = 10;
     private void ColorSelected(string color)
     {
         Console.WriteLine("color selected", color);
@@ -90,6 +109,13 @@
             currentPlayer.Ship.OriginalColor = color;
             SelectedColor = color;
             StateHasChanged();
+            var newShip = new ShipUpdate
+                {
+                    lobbyId = LobbyData.Game.Id,
+                    user = currentPlayer,
+                    Ship = currentPlayer.Ship
+                };
+            akkaService.Tell(newShip);
             //currentPlayer.SpaceShip.color = color;
         }
     }
@@ -100,7 +126,15 @@
         if(currentPlayer != null)
         {
             currentPlayer.Ship.ShipImage = image;
+
             StateHasChanged();
+            var newShip = new ShipUpdate
+                {
+                    lobbyId = LobbyData.Game.Id,
+                    user = currentPlayer,
+                    Ship = currentPlayer.Ship
+                };
+            akkaService.Tell(newShip);
         }
     }
 
@@ -118,7 +152,7 @@
         var lobbyDataJson = Uri.UnescapeDataString(LobbyDatastring); // Decode URL-encoded JSON string
         LobbyData = JsonConvert.DeserializeObject<UserInAGame>(lobbyDataJson);
         Console.WriteLine($"Count of players form lobbystartpage { LobbyData?.Game.Players.Count}");
-
+        AllPlayersReady();
         signalRservice.hubConnection.On<GameLobby>("ReceiveMessage", (message) =>
             {
                 if(message.CurrentState == GameState.Playing)
@@ -130,34 +164,85 @@
                     LobbyData.Game = message;
 
                     LobbyDataService.SetLobbyData(LobbyData.Game.Id, LobbyData.Game);
-
                     var userToLobby = new UserAndGameId()
-                    {
-                        user = LobbyData.user,
-                        LobbyId = LobbyData.Game.Id
-                    };
-
+                        {
+                            user = LobbyData.user,
+                            LobbyId = LobbyData.Game.Id
+                        };
                     var serlData = JsonConvert.SerializeObject(userToLobby);
                     NavigationManager.NavigateTo($"/lobby/{Uri.EscapeDataString(serlData)}");
-             }
 
-         });
+                }
+                else
+                {
+                    Console.WriteLine("Updating ships");
+                    LobbyData.Game.Players = message.Players;
+                    StateHasChanged();
+                }
+            });
 
-     }
-
-     // Dispose the hub connection when component is disposed
-     
-
-     private async Task ChangeGameState()
+    }
+    private async Task StartTimer()
+    {
+        showTimer = true;
+        while(countdownSeconds > 0)
         {
-        var cgs = new ChangeGameState
-                 {
-                 user = LobbyData.Game.HeadPlayer.Username,
-                lobbyId = LobbyData.Game.Id,
-                lobby = LobbyData.Game,
-                 lobbyState = GameState.Playing
-         };
-         akkaService.Tell(cgs);
+            await Task.Delay(1000);
+            countdownSeconds--;
+            StateHasChanged();
+        }
+        
+    }
+
+    // Dispose the hub connection when component is disposed
+
+    private async Task SignalReady()
+    {
+        //send user ship to the lobby actor.
+        //will need to send a message to all the clients with the updated lobby.
+        Console.WriteLine("Signal ship is ready");
+        var currentPlayer = LobbyData.Game.Players.FirstOrDefault(p => p.Username == LobbyData.user.Username);
+
+        if(currentPlayer != null)
+        {
+            LobbyData.user.Ship.isReady = true;
+            currentPlayer.Ship.isReady = true;
+
+            if(AllPlayersReady())
+            {
+                StateHasChanged();
+            }
+            var newShip = new ShipUpdate
+                {
+                    lobbyId = LobbyData.Game.Id,
+                    user = currentPlayer,
+                    Ship = currentPlayer.Ship
+                };
+            akkaService.Tell(newShip);
+            StateHasChanged();
+        }
+        /*var shipData = new ShipData
+            {
+            ShipColors = LobbyData.user.Ship.ShipColor,
+            ShipImage = LobbyData.user.Ship.ShipImage,
+        };*/
+    }
+    private bool AllPlayersReady()
+    {
+        return LobbyData.Game.Players.All(player => player.Ship.isReady);
+    }
+    private async Task ChangeGameState()
+        {
+            await StartTimer();
+
+            var cgs = new ChangeGameState
+                     {
+                     user = LobbyData.Game.HeadPlayer.Username,
+                    lobbyId = LobbyData.Game.Id,
+                    lobby = LobbyData.Game,
+                     lobbyState = GameState.Playing
+             };
+             akkaService.Tell(cgs);
 
     }
 }

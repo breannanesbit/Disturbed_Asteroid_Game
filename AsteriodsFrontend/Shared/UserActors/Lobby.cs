@@ -73,12 +73,24 @@ namespace Actors.UserActors
                 }
                 Ship ship = moveEvent.user.Ship;
                 AddPointsToShip(1,ship);
+                var player = CurrentLobby.Players.Find(p => p.Username == moveEvent.user.Username);
+                if(player == null)
+                {
+                    player.Ship = ship;
+                }
                 Sender.Tell(CurrentLobby);
 
             });
             Receive<Lazer>((lazer) =>
             {
                 CurrentLobby.Lazers.Add(lazer);
+            });
+            Receive<ShipUpdate>((ship) =>
+            {
+                var user = CurrentLobby.Players.Find(g => g.Username == ship.user.Username);
+                user.Ship = ship.user.Ship;
+                Console.WriteLine($"Ship color is {user.Ship.ShipColor} and image is {user.Ship.ShipImage}");
+                Context.Parent.Tell(CurrentLobby);
             });
             Receive<ChangeGameState>(async state =>
             {
@@ -90,15 +102,15 @@ namespace Actors.UserActors
                     //CurrentLobby = state.lobby;
                     CurrentLobby.CurrentState = state.lobbyState;
 
-                    AddPowerUp(seed);
+                    
 
                     /*timer = new Timer(async (_) =>
                     {
                         Console.WriteLine("Anotehr iteration of the game timer");
                         await UpdateGame();
                     }, null, TimeSpan.Zero, TimeSpan.FromSeconds(0.05));*/
-                    UpdateGame();
-                    if(!isLooping) //so it only gets called once.
+                    await UpdateGame();
+                    if(!isLooping && CurrentLobby.CurrentState == GameState.Playing) //so it only gets called once.
                     {
                         gameUpdate.lobby = CurrentLobby;
                         Self.Tell(gameUpdate);// call update game
@@ -136,7 +148,7 @@ namespace Actors.UserActors
                 //every time the timespan goes off call updategame method
                 gameLoopCancel = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(
                     TimeSpan.FromSeconds(0),
-                    TimeSpan.FromSeconds(0.05),
+                    TimeSpan.FromSeconds(0.5),
                     Self,
                     new ChangeGameState {
                         user = CurrentLobby.HeadPlayer.Username,
@@ -174,6 +186,10 @@ namespace Actors.UserActors
         }
         public async Task UpdateGame()
         {
+            if(powerupTic == 0 && CurrentLobby.PowerUps.Count == 0)
+            {
+                AddPowerUp(seed);
+            }
             if (asteroidTic == 60)
             {
                 Console.WriteLine("another iteration of the asteroid timer");
@@ -184,6 +200,7 @@ namespace Actors.UserActors
             {
                 Console.WriteLine("Moving asteroids");
                 await MoveAsteroids(CurrentLobby.HeadPlayer.Ship);
+                Console.WriteLine("Moved asteroids");
             }
             if (CurrentLobby.Lazers.Count != 0)
             {
@@ -192,7 +209,9 @@ namespace Actors.UserActors
             }
             if (CurrentLobby.PowerUps.Count != 0)
             {
+                Console.WriteLine("Moving Powerups");
                 await MovePowerups(CurrentLobby.HeadPlayer.Ship);
+                Console.WriteLine("Move powerups");
             }
             Console.WriteLine("Sending current state to sender");
             asteroidTic += 1;

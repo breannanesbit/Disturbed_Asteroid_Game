@@ -35,6 +35,12 @@ namespace Actors.UserActors
     {
         public GameLobby lobby { get; set; }
     }
+    public class ShipUpdate
+    {
+        public Guid lobbyId { get; set; }
+        public User user { get; set; }
+        public Ship Ship { get; set; }
+    }
 
     public class User
     {

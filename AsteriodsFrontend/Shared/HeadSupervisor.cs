@@ -52,6 +52,10 @@ namespace Actors.UserActors
             {
                 newLobbySupervisor.Forward(poison);
             });
+            Receive<ShipUpdate>((shipUpdate) =>
+            {
+                newLobbySupervisor.Forward(shipUpdate);
+            });
         }
     }
 

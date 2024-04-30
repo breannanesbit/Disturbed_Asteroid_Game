@@ -72,6 +72,14 @@ namespace Actors.UserActors
                 }
             });
 
+            Receive<ShipUpdate>((ship) =>
+            {
+                var existingLobby = Lobbies.Find(g => g.Id == ship.lobbyId);
+                if(existingLobby != null)
+                {
+                    existingLobby.ActorRef.Forward(ship);
+                }
+            });
             Receive<NewLobbyObject>(NewLobby =>
             {
                 try

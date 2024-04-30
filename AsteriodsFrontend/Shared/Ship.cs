@@ -10,6 +10,7 @@ namespace Shared;
 
 public class Ship
 {
+    public bool isReady { get; set; } = false;
     public int x { get; set; } = 100;
     public int y { get; set; } = 100;
     public int BoundaryLeft { get; } = 0;

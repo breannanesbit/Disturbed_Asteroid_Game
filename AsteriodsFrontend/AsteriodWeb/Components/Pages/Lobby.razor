@@ -104,7 +104,14 @@
             {
                 Console.WriteLine("Got message Playing from signalR");
                 gameLobby = message;
-
+                asteroids = gameLobby.Asteroids;
+                lazers = gameLobby.Lazers;
+                powerups = gameLobby.PowerUps;
+                shipsAlive = gameLobby.Players;
+                ShipsDead = gameLobby.DeadPlayers;
+                Lobby1.user = message.Players.Find(p => p.Username == Lobby1.user.Username);
+                lazerCount = lazers.Count(l => l.user.Username == Lobby1.user.Username);
+                InvokeAsync(StateHasChanged);
             }
         });
     }
@@ -113,9 +120,10 @@
         if (Moves.Any())
         {
             var newMove = Moves.Last();
-        var ship = Lobby1.user.Ship;
-        if(newMove != Lobby1.user.Ship.Move)
-        {
+            var ship = Lobby1.user.Ship;
+            //if(newMove != Lobby1.user.Ship.Move)
+            //{
+            Console.WriteLine($"Ship attempting to move {ship}");
             switch (newMove)
             {
                 case "Forward":
@@ -170,7 +178,7 @@
                     break;
             }
             Moves.Remove(newMove);
-        }
+        //}
         }
     }
     public async Task HandleKeyPress(KeyboardEventArgs e)
